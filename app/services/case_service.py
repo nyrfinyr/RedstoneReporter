@@ -103,14 +103,15 @@ def get_cases_by_run(
         status_filter: Optional status to filter by (e.g., "failed").
 
     Returns:
-        List[TestCase]: List of test cases.
+        List[TestCase]: List of test cases ordered by ID (ascending).
     """
     statement = select(TestCase).where(TestCase.run_id == run_id)
 
     if status_filter:
         statement = statement.where(TestCase.status == status_filter)
 
-    statement = statement.order_by(TestCase.created_at)
+    # Order by ID ascending (Bug fix: show test cases in order of execution)
+    statement = statement.order_by(TestCase.id)
 
     results = session.exec(statement)
     return list(results)

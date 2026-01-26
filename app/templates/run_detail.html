@@ -98,6 +98,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
                             <div class="flex items-center space-x-3">
+                                <span class="text-sm font-medium text-gray-500">#{{ case.id }}</span>
                                 <h3 class="text-lg font-medium text-gray-900">{{ case.name }}</h3>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-{{ case.status }}">
                                     {{ case.status|upper }}
@@ -125,17 +126,19 @@
                             {% endif %}
                         </div>
 
-                        <!-- Expand Button -->
+                        <!-- Expand/Collapse Button -->
                         <button
+                            id="btn-{{ case.id }}"
                             class="ml-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                             hx-get="/api/htmx/cases/{{ case.id }}/details"
                             hx-target="#case-details-{{ case.id }}"
                             hx-swap="innerHTML"
-                            onclick="this.disabled=true;">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            hx-trigger="click[!this.dataset.loaded]"
+                            onclick="toggleDetails({{ case.id }})">
+                            <svg id="icon-{{ case.id }}" class="h-5 w-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
-                            <span class="ml-2">Show Details</span>
+                            <span id="text-{{ case.id }}" class="ml-2">Show Details</span>
                         </button>
                     </div>
                 </div>
@@ -161,4 +164,41 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+function toggleDetails(caseId) {
+    const detailsDiv = document.getElementById('case-details-' + caseId);
+    const button = document.getElementById('btn-' + caseId);
+    const icon = document.getElementById('icon-' + caseId);
+    const text = document.getElementById('text-' + caseId);
+
+    // Check if details are already loaded
+    if (button.dataset.loaded) {
+        // Toggle visibility
+        const isHidden = detailsDiv.classList.contains('hidden');
+
+        if (isHidden) {
+            detailsDiv.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
+            text.textContent = 'Hide Details';
+        } else {
+            detailsDiv.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+            text.textContent = 'Show Details';
+        }
+    } else {
+        // First time - show loading and let HTMX load content
+        detailsDiv.classList.remove('hidden');
+        text.textContent = 'Loading...';
+
+        // Mark as loaded after HTMX completes
+        setTimeout(() => {
+            button.dataset.loaded = 'true';
+            text.textContent = 'Hide Details';
+            icon.style.transform = 'rotate(180deg)';
+        }, 500);
+    }
+}
+</script>
+
 {% endblock %}
