@@ -29,6 +29,7 @@ class Priority(str, Enum):
 # Order matters: parent models first to avoid FK resolution issues
 from app.models.project import Project
 from app.models.epic import Epic
+from app.models.feature import Feature
 from app.models.test_case_definition import TestCaseDefinition
 from app.models.test_run import TestRun
 from app.models.test_case import TestCase
@@ -40,6 +41,7 @@ __all__ = [
     "Priority",
     "Project",
     "Epic",
+    "Feature",
     "TestCaseDefinition",
     "TestRun",
     "TestCase",

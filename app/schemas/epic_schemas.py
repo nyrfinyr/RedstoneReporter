@@ -27,6 +27,7 @@ class EpicResponse(BaseModel):
     description: Optional[str] = None
     external_ref: Optional[str] = None
     created_at: datetime
+    feature_count: int = 0
     test_definition_count: int = 0
     active_test_definition_count: int = 0
 

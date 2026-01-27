@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional, List
 import logging
 
-from app.models import TestCaseDefinition, Epic
+from app.models import TestCaseDefinition, Feature, Epic
 from app.services.exceptions import TestCaseDefinitionNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def create_definition(
     session: Session,
-    epic_id: int,
+    feature_id: int,
     title: str,
     steps: List[dict],
     description: Optional[str] = None,
@@ -25,7 +25,7 @@ def create_definition(
 
     Args:
         session: Database session.
-        epic_id: ID of the parent epic.
+        feature_id: ID of the parent feature.
         title: Test case title.
         steps: List of step dicts [{"description": "...", "order": 0}, ...].
         description: Optional description.
@@ -38,7 +38,7 @@ def create_definition(
     """
     now = datetime.utcnow()
     definition = TestCaseDefinition(
-        epic_id=epic_id,
+        feature_id=feature_id,
         title=title,
         steps=steps,
         description=description,
@@ -51,7 +51,7 @@ def create_definition(
     session.add(definition)
     session.commit()
     session.refresh(definition)
-    logger.info(f"TestCaseDefinition created with ID: {definition.id} in epic {epic_id}")
+    logger.info(f"TestCaseDefinition created with ID: {definition.id} in feature {feature_id}")
     return definition
 
 
@@ -68,22 +68,22 @@ def get_definition(session: Session, definition_id: int) -> Optional[TestCaseDef
     return session.get(TestCaseDefinition, definition_id)
 
 
-def list_definitions_by_epic(
+def list_definitions_by_feature(
     session: Session,
-    epic_id: int,
+    feature_id: int,
     active_only: bool = True
 ) -> List[TestCaseDefinition]:
-    """List test case definitions for an epic.
+    """List test case definitions for a feature.
 
     Args:
         session: Database session.
-        epic_id: ID of the parent epic.
+        feature_id: ID of the parent feature.
         active_only: If True, only return active definitions.
 
     Returns:
         List[TestCaseDefinition]: List of definitions.
     """
-    statement = select(TestCaseDefinition).where(TestCaseDefinition.epic_id == epic_id)
+    statement = select(TestCaseDefinition).where(TestCaseDefinition.feature_id == feature_id)
     if active_only:
         statement = statement.where(TestCaseDefinition.is_active == True)
     statement = statement.order_by(TestCaseDefinition.created_at.desc())
@@ -94,14 +94,16 @@ def list_definitions_by_project(
     session: Session,
     project_id: int,
     epic_id: Optional[int] = None,
+    feature_id: Optional[int] = None,
     priority: Optional[str] = None
 ) -> List[TestCaseDefinition]:
-    """List active definitions across all epics of a project (FR-H1, FR-H2).
+    """List active definitions across all features of a project (FR-H1, FR-H2).
 
     Args:
         session: Database session.
         project_id: ID of the project.
         epic_id: Optional filter by specific epic.
+        feature_id: Optional filter by specific feature.
         priority: Optional comma-separated priority filter (e.g. "critical,high").
 
     Returns:
@@ -109,12 +111,15 @@ def list_definitions_by_project(
     """
     statement = (
         select(TestCaseDefinition)
+        .join(Feature)
         .join(Epic)
         .where(Epic.project_id == project_id)
         .where(TestCaseDefinition.is_active == True)
     )
     if epic_id:
-        statement = statement.where(TestCaseDefinition.epic_id == epic_id)
+        statement = statement.where(Feature.epic_id == epic_id)
+    if feature_id:
+        statement = statement.where(TestCaseDefinition.feature_id == feature_id)
     if priority:
         priorities = [p.strip() for p in priority.split(",")]
         statement = statement.where(TestCaseDefinition.priority.in_(priorities))

@@ -13,6 +13,8 @@
             <li><span class="mx-1">/</span></li>
             <li><a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="hover:text-indigo-600">{{ epic.name }}</a></li>
             <li><span class="mx-1">/</span></li>
+            <li><a href="/features/{{ feature.id }}" class="hover:text-indigo-600">{{ feature.name }}</a></li>
+            <li><span class="mx-1">/</span></li>
             <li class="font-medium text-gray-900">{% if definition %}Modifica{% else %}Nuovo{% endif %} Test Case</li>
         </ol>
     </nav>
@@ -84,7 +86,7 @@
 
             <!-- Submit -->
             <div class="flex justify-end space-x-3">
-                <a href="/projects/{{ project.id }}/epics/{{ epic.id }}"
+                <a href="/features/{{ feature.id }}"
                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                     Annulla
                 </a>
@@ -179,7 +181,7 @@ document.getElementById('definition-form').addEventListener('submit', async func
         url = '/api/test-cases/{{ definition.id }}';
         method = 'PUT';
         {% else %}
-        url = '/api/epics/{{ epic.id }}/test-cases';
+        url = '/api/features/{{ feature.id }}/test-cases';
         method = 'POST';
         {% endif %}
 

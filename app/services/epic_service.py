@@ -113,14 +113,14 @@ def delete_epic(session: Session, epic_id: int) -> None:
 
     Raises:
         EpicNotFoundError: If epic not found.
-        DeletionConstraintError: If epic has associated test case definitions.
+        DeletionConstraintError: If epic has associated features.
     """
     epic = session.get(Epic, epic_id)
     if not epic:
         raise EpicNotFoundError(epic_id)
 
-    if epic.test_case_definitions and len(epic.test_case_definitions) > 0:
-        raise DeletionConstraintError("Epic", epic_id, "has associated TestCaseDefinitions")
+    if epic.features and len(epic.features) > 0:
+        raise DeletionConstraintError("Epic", epic_id, "has associated Features")
 
     session.delete(epic)
     session.commit()

@@ -53,6 +53,47 @@ def run_migrations():
             cursor.execute("ALTER TABLE test_cases ADD COLUMN definition_id INTEGER")
             logger.info("Migration: added definition_id column to test_cases")
 
+        # Feature 03: Migrate epic_id → feature_id on test_case_definitions
+        # Step 1: Add feature_id column if missing
+        cursor.execute("PRAGMA table_info(test_case_definitions)")
+        tcd_columns = [col[1] for col in cursor.fetchall()]
+        if "feature_id" not in tcd_columns:
+            cursor.execute("ALTER TABLE test_case_definitions ADD COLUMN feature_id INTEGER")
+            logger.info("Migration: added feature_id column to test_case_definitions")
+
+        # Step 2: For each epic that has test_case_definitions with feature_id=NULL,
+        # create a Feature with the same name and link the definitions
+        cursor.execute(
+            "SELECT DISTINCT d.epic_id, e.name "
+            "FROM test_case_definitions d "
+            "JOIN epics e ON d.epic_id = e.id "
+            "WHERE d.feature_id IS NULL AND d.epic_id IS NOT NULL"
+        )
+        epics_to_migrate = cursor.fetchall()
+        for epic_id, epic_name in epics_to_migrate:
+            # Check if a feature already exists for this epic (idempotent)
+            cursor.execute(
+                "SELECT id FROM features WHERE epic_id = ? AND name = ?",
+                (epic_id, epic_name)
+            )
+            row = cursor.fetchone()
+            if row:
+                feature_id = row[0]
+            else:
+                cursor.execute(
+                    "INSERT INTO features (epic_id, name, created_at) VALUES (?, ?, datetime('now'))",
+                    (epic_id, epic_name)
+                )
+                feature_id = cursor.lastrowid
+                logger.info(f"Migration: created Feature '{epic_name}' (id={feature_id}) for Epic {epic_id}")
+
+            # Link all definitions from this epic to the new feature
+            cursor.execute(
+                "UPDATE test_case_definitions SET feature_id = ? WHERE epic_id = ? AND feature_id IS NULL",
+                (feature_id, epic_id)
+            )
+            logger.info(f"Migration: linked definitions from Epic {epic_id} to Feature {feature_id}")
+
         conn.commit()
     finally:
         conn.close()

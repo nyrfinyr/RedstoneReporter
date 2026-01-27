@@ -85,6 +85,14 @@ class EpicNotFoundError(ResourceNotFoundError):
         super().__init__(f"Epic with ID {epic_id} not found")
 
 
+class FeatureNotFoundError(ResourceNotFoundError):
+    """Feature not found."""
+
+    def __init__(self, feature_id: int):
+        self.feature_id = feature_id
+        super().__init__(f"Feature with ID {feature_id} not found")
+
+
 class TestCaseDefinitionNotFoundError(ResourceNotFoundError):
     """Test case definition not found."""
 

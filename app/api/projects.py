@@ -14,7 +14,6 @@ from app.schemas.epic_schemas import (
     CreateEpicRequest, UpdateEpicRequest, EpicResponse
 )
 from app.schemas.definition_schemas import (
-    CreateTestCaseDefinitionRequest,
     UpdateTestCaseDefinitionRequest,
     TestCaseDefinitionResponse,
     TestCaseDefinitionListResponse
@@ -121,7 +120,6 @@ async def create_epic(
     session: Session = Depends(get_session)
 ):
     """Create a new epic within a project (FR-F1)."""
-    # Verify project exists
     project = project_service.get_project(session, project_id)
     if not project:
         raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
@@ -141,6 +139,7 @@ async def create_epic(
         description=epic.description,
         external_ref=epic.external_ref,
         created_at=epic.created_at,
+        feature_count=epic.feature_count,
         test_definition_count=epic.test_definition_count,
         active_test_definition_count=epic.active_test_definition_count
     )
@@ -158,6 +157,7 @@ async def list_epics(project_id: int, session: Session = Depends(get_session)):
             description=e.description,
             external_ref=e.external_ref,
             created_at=e.created_at,
+            feature_count=e.feature_count,
             test_definition_count=e.test_definition_count,
             active_test_definition_count=e.active_test_definition_count
         )
@@ -178,6 +178,7 @@ async def get_epic(epic_id: int, session: Session = Depends(get_session)):
         description=epic.description,
         external_ref=epic.external_ref,
         created_at=epic.created_at,
+        feature_count=epic.feature_count,
         test_definition_count=epic.test_definition_count,
         active_test_definition_count=epic.active_test_definition_count
     )
@@ -203,6 +204,7 @@ async def update_epic(
         description=epic.description,
         external_ref=epic.external_ref,
         created_at=epic.created_at,
+        feature_count=epic.feature_count,
         test_definition_count=epic.test_definition_count,
         active_test_definition_count=epic.active_test_definition_count
     )
@@ -210,72 +212,33 @@ async def update_epic(
 
 @router.delete("/epics/{epic_id}", status_code=204)
 async def delete_epic(epic_id: int, session: Session = Depends(get_session)):
-    """Delete an epic (FR-F3: with constraint check)."""
+    """Delete an epic (FR-F3: with constraint check — no features allowed)."""
     epic_service.delete_epic(session, epic_id)
     return None
 
 
-# --- TestCaseDefinition CRUD ---
-
-@router.post("/epics/{epic_id}/test-cases", response_model=TestCaseDefinitionResponse, status_code=201)
-async def create_definition(
-    epic_id: int,
-    request: CreateTestCaseDefinitionRequest,
-    session: Session = Depends(get_session)
-):
-    """Create a new test case definition (FR-G1)."""
-    # Verify epic exists
-    epic = epic_service.get_epic(session, epic_id)
-    if not epic:
-        raise HTTPException(status_code=404, detail=f"Epic {epic_id} not found")
-
-    logger.info(f"Creating test case definition: {request.title} in epic {epic_id}")
-    steps_data = [s.model_dump() for s in request.steps]
-    definition = definition_service.create_definition(
-        session,
-        epic_id=epic_id,
-        title=request.title,
-        steps=steps_data,
-        description=request.description,
-        preconditions=request.preconditions,
-        expected_result=request.expected_result,
-        priority=request.priority
-    )
-    return TestCaseDefinitionResponse(
-        id=definition.id,
-        epic_id=definition.epic_id,
-        title=definition.title,
-        description=definition.description,
-        preconditions=definition.preconditions,
-        steps=definition.steps,
-        expected_result=definition.expected_result,
-        priority=definition.priority,
-        is_active=definition.is_active,
-        created_at=definition.created_at,
-        updated_at=definition.updated_at,
-        execution_count=definition.execution_count
-    )
-
+# --- TestCaseDefinition read/update/delete (creation moved to features.py) ---
 
 @router.get("/projects/{project_id}/test-cases", response_model=List[TestCaseDefinitionListResponse])
 async def list_project_test_cases(
     project_id: int,
     epic_id: Optional[int] = None,
+    feature_id: Optional[int] = None,
     priority: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
-    """List active test case definitions for a project (FR-H1, FR-H2).
+    """List active test case definitions for a project (FR-H1, FR-H2, FR-P4).
 
     Used by AI agents to query which tests to execute.
-    Supports optional filters: epic_id, priority (comma-separated).
+    Supports optional filters: epic_id, feature_id, priority (comma-separated).
     """
     definitions = definition_service.list_definitions_by_project(
-        session, project_id, epic_id=epic_id, priority=priority
+        session, project_id, epic_id=epic_id, feature_id=feature_id, priority=priority
     )
     return [
         TestCaseDefinitionListResponse(
             id=d.id,
-            epic_id=d.epic_id,
+            feature_id=d.feature_id,
             title=d.title,
             description=d.description,
             priority=d.priority,
@@ -295,7 +258,7 @@ async def get_definition(definition_id: int, session: Session = Depends(get_sess
         raise HTTPException(status_code=404, detail=f"TestCaseDefinition {definition_id} not found")
     return TestCaseDefinitionResponse(
         id=definition.id,
-        epic_id=definition.epic_id,
+        feature_id=definition.feature_id,
         title=definition.title,
         description=definition.description,
         preconditions=definition.preconditions,
@@ -335,7 +298,7 @@ async def update_definition(
     definition = definition_service.update_definition(session, definition_id, **update_data)
     return TestCaseDefinitionResponse(
         id=definition.id,
-        epic_id=definition.epic_id,
+        feature_id=definition.feature_id,
         title=definition.title,
         description=definition.description,
         preconditions=definition.preconditions,
@@ -355,7 +318,7 @@ async def delete_definition(definition_id: int, session: Session = Depends(get_s
     definition = definition_service.soft_delete_definition(session, definition_id)
     return TestCaseDefinitionResponse(
         id=definition.id,
-        epic_id=definition.epic_id,
+        feature_id=definition.feature_id,
         title=definition.title,
         description=definition.description,
         preconditions=definition.preconditions,

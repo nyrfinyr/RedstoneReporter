@@ -34,7 +34,11 @@
         </div>
 
         <!-- Stats -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-purple-50 rounded-lg p-4">
+                <p class="text-sm font-medium text-purple-700">Feature</p>
+                <p class="mt-1 text-2xl font-bold text-purple-600">{{ epic.feature_count }}</p>
+            </div>
             <div class="bg-blue-50 rounded-lg p-4">
                 <p class="text-sm font-medium text-blue-700">Test Definiti</p>
                 <p class="mt-1 text-2xl font-bold text-blue-600">{{ epic.test_definition_count }}</p>
@@ -46,63 +50,69 @@
         </div>
     </div>
 
-    <!-- New Test Case Button -->
+    <!-- Features Section -->
     <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-gray-900">Test Case Definitions</h2>
-        <a href="/projects/{{ project.id }}/epics/{{ epic.id }}/test-cases/new"
-           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+        <h2 class="text-lg font-semibold text-gray-900">Feature</h2>
+        <button onclick="toggleNewFeatureForm()"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
             <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
-            Nuovo Test Case
-        </a>
+            Nuova Feature
+        </button>
     </div>
 
-    <!-- Definitions List -->
-    {% if definitions %}
+    <!-- New Feature Inline Form (hidden by default) -->
+    <div id="new-feature-form" class="bg-white shadow rounded-lg p-6 hidden">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Nuova Feature</h3>
+        <form onsubmit="createFeature(event)" class="space-y-4">
+            <div>
+                <label for="feature-name" class="block text-sm font-medium text-gray-700">Nome *</label>
+                <input type="text" id="feature-name" required maxlength="255"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+            </div>
+            <div>
+                <label for="feature-description" class="block text-sm font-medium text-gray-700">Descrizione</label>
+                <textarea id="feature-description" rows="2" maxlength="1000"
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="toggleNewFeatureForm()"
+                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Annulla
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                    Crea Feature
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Features List -->
+    {% if features %}
     <div class="space-y-4">
-        {% for def in definitions %}
-        <div class="bg-white shadow rounded-lg p-6 {% if not def.is_active %}opacity-60{% endif %}">
+        {% for feat in features %}
+        <div class="bg-white shadow rounded-lg p-6">
             <div class="flex items-center justify-between">
                 <div class="flex-1">
-                    <div class="flex items-center space-x-3">
-                        <a href="/test-cases/{{ def.id }}" class="text-lg font-medium text-indigo-600 hover:text-indigo-800">
-                            {{ def.title }}
-                        </a>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium priority-{{ def.priority }}">
-                            {{ def.priority|upper }}
-                        </span>
-                        {% if not def.is_active %}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
-                            INATTIVO
-                        </span>
-                        {% endif %}
-                    </div>
-                    {% if def.description %}
-                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ def.description }}</p>
+                    <a href="/features/{{ feat.id }}" class="text-lg font-medium text-indigo-600 hover:text-indigo-800">
+                        {{ feat.name }}
+                    </a>
+                    {% if feat.description %}
+                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ feat.description }}</p>
                     {% endif %}
                     <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                        <span>{{ def.steps|length }} step</span>
-                        <span>{{ def.execution_count }} esecuzioni</span>
-                        <span>Creato: {{ def.created_at.strftime('%Y-%m-%d') }}</span>
+                        <span>{{ feat.test_definition_count }} test definiti</span>
+                        <span>{{ feat.active_test_definition_count }} attivi</span>
+                        <span>Creata: {{ feat.created_at.strftime('%Y-%m-%d') }}</span>
                     </div>
                 </div>
                 <div class="ml-4 flex items-center space-x-2">
-                    <a href="/test-cases/{{ def.id }}/edit"
-                       class="px-3 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50">
-                        Modifica
-                    </a>
-                    {% if def.is_active %}
-                    <button onclick="deactivateDefinition({{ def.id }})"
+                    <button onclick="deleteFeature({{ feat.id }}, '{{ feat.name|e }}')"
                             class="px-3 py-1 border border-red-300 rounded-md text-xs font-medium text-red-700 bg-white hover:bg-red-50">
-                        Disattiva
+                        Elimina
                     </button>
-                    {% else %}
-                    <button onclick="activateDefinition({{ def.id }})"
-                            class="px-3 py-1 border border-green-300 rounded-md text-xs font-medium text-green-700 bg-white hover:bg-green-50">
-                        Riattiva
-                    </button>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -111,19 +121,31 @@
     {% else %}
     <div class="bg-white shadow rounded-lg p-12 text-center">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Nessun test case definito</h3>
-        <p class="mt-1 text-sm text-gray-500">Crea il primo test case per questa epic.</p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Nessuna feature</h3>
+        <p class="mt-1 text-sm text-gray-500">Crea la prima feature per questa epic.</p>
     </div>
     {% endif %}
 </div>
 
 <script>
-async function deactivateDefinition(defId) {
-    if (!confirm('Disattivare questo test case?')) return;
+function toggleNewFeatureForm() {
+    const form = document.getElementById('new-feature-form');
+    form.classList.toggle('hidden');
+}
+
+async function createFeature(e) {
+    e.preventDefault();
+    const name = document.getElementById('feature-name').value;
+    const description = document.getElementById('feature-description').value || null;
+
     try {
-        const response = await fetch('/api/test-cases/' + defId, {method: 'DELETE'});
+        const response = await fetch('/api/epics/{{ epic.id }}/features', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: name, description: description})
+        });
         if (response.ok) {
             window.location.reload();
         } else {
@@ -135,13 +157,10 @@ async function deactivateDefinition(defId) {
     }
 }
 
-async function activateDefinition(defId) {
+async function deleteFeature(featureId, featureName) {
+    if (!confirm('Eliminare la feature "' + featureName + '"? Questa operazione non puo\' essere annullata.')) return;
     try {
-        const response = await fetch('/api/test-cases/' + defId, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({is_active: true})
-        });
+        const response = await fetch('/api/features/' + featureId, {method: 'DELETE'});
         if (response.ok) {
             window.location.reload();
         } else {

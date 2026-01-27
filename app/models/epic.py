@@ -6,7 +6,7 @@ from typing import Optional, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.project import Project
-    from app.models.test_case_definition import TestCaseDefinition
+    from app.models.feature import Feature
 
 
 class Epic(SQLModel, table=True):
@@ -25,19 +25,26 @@ class Epic(SQLModel, table=True):
 
     # Relationships
     project: "Project" = Relationship(back_populates="epics")
-    test_case_definitions: List["TestCaseDefinition"] = Relationship(
+    features: List["Feature"] = Relationship(
         back_populates="epic",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 
     @property
+    def feature_count(self) -> int:
+        """Total number of features in this epic."""
+        return len(self.features) if self.features else 0
+
+    @property
     def test_definition_count(self) -> int:
-        """Total number of test case definitions in this epic."""
-        return len(self.test_case_definitions) if self.test_case_definitions else 0
+        """Total number of test case definitions across all features."""
+        if not self.features:
+            return 0
+        return sum(f.test_definition_count for f in self.features)
 
     @property
     def active_test_definition_count(self) -> int:
-        """Number of active test case definitions in this epic."""
-        if not self.test_case_definitions:
+        """Number of active test case definitions across all features."""
+        if not self.features:
             return 0
-        return sum(1 for d in self.test_case_definitions if d.is_active)
+        return sum(f.active_test_definition_count for f in self.features)

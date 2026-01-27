@@ -12,6 +12,7 @@ from app.config import settings
 from app.database import create_db_and_tables, run_migrations
 from app.api import runs
 from app.api import projects as projects_api
+from app.api import features as features_api
 from app.web import routes as web_routes, htmx_routes, project_routes
 from app.services.exceptions import (
     RunNotFoundError,
@@ -21,6 +22,7 @@ from app.services.exceptions import (
     ValidationError,
     ProjectNotFoundError,
     EpicNotFoundError,
+    FeatureNotFoundError,
     TestCaseDefinitionNotFoundError,
     DeletionConstraintError
 )
@@ -127,6 +129,19 @@ async def epic_not_found_handler(request: Request, exc: EpicNotFoundError):
     )
 
 
+@app.exception_handler(FeatureNotFoundError)
+async def feature_not_found_handler(request: Request, exc: FeatureNotFoundError):
+    """Handle FeatureNotFoundError with 404 response."""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": str(exc),
+            "error_code": "FEATURE_NOT_FOUND",
+            "feature_id": exc.feature_id
+        }
+    )
+
+
 @app.exception_handler(TestCaseDefinitionNotFoundError)
 async def definition_not_found_handler(request: Request, exc: TestCaseDefinitionNotFoundError):
     """Handle TestCaseDefinitionNotFoundError with 404 response."""
@@ -202,6 +217,9 @@ logger.info("API routes mounted at /api/runs")
 
 app.include_router(projects_api.router, prefix="/api", tags=["projects"])
 logger.info("Projects API routes mounted at /api")
+
+app.include_router(features_api.router, prefix="/api", tags=["features"])
+logger.info("Features API routes mounted at /api")
 
 # Include Web UI routers
 app.include_router(web_routes.router, tags=["web"])

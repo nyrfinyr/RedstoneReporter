@@ -35,18 +35,14 @@ class Project(SQLModel, table=True):
 
     @property
     def test_definition_count(self) -> int:
-        """Total number of test case definitions across all epics."""
+        """Total number of test case definitions across all epics and features."""
         if not self.epics:
             return 0
-        return sum(len(e.test_case_definitions) for e in self.epics if e.test_case_definitions)
+        return sum(e.test_definition_count for e in self.epics)
 
     @property
     def active_test_definition_count(self) -> int:
-        """Number of active test case definitions across all epics."""
+        """Number of active test case definitions across all epics and features."""
         if not self.epics:
             return 0
-        count = 0
-        for epic in self.epics:
-            if epic.test_case_definitions:
-                count += sum(1 for d in epic.test_case_definitions if d.is_active)
-        return count
+        return sum(e.active_test_definition_count for e in self.epics)

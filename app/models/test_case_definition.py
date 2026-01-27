@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.models.epic import Epic
+    from app.models.feature import Feature
     from app.models.test_case import TestCase
 
 
@@ -19,7 +19,7 @@ class TestCaseDefinition(SQLModel, table=True):
     __tablename__ = "test_case_definitions"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    epic_id: int = Field(foreign_key="epics.id", index=True)
+    feature_id: int = Field(foreign_key="features.id", index=True)
     title: str = Field(max_length=255)
     description: Optional[str] = Field(default=None, max_length=2000)
     preconditions: Optional[str] = Field(default=None, max_length=2000)
@@ -31,7 +31,7 @@ class TestCaseDefinition(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    epic: "Epic" = Relationship(back_populates="test_case_definitions")
+    feature: "Feature" = Relationship(back_populates="test_case_definitions")
     executions: List["TestCase"] = Relationship(back_populates="definition")
 
     @property

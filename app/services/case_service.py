@@ -1,9 +1,15 @@
 """Service layer for TestCase operations."""
 
+import os
+import logging
 from sqlmodel import Session, select
 from typing import List, Optional, Dict, Any
 
 from app.models import TestCase, TestStep
+from app.services.exceptions import CaseNotFoundError
+from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def create_test_case(
@@ -146,3 +152,35 @@ def get_case_by_id(session: Session, case_id: int) -> Optional[TestCase]:
         Optional[TestCase]: The test case if found, None otherwise.
     """
     return session.get(TestCase, case_id)
+
+
+def delete_test_case(session: Session, case_id: int) -> None:
+    """Hard delete a test case with all associated data (FR-O1).
+
+    Permanently removes the test case, its steps, and its screenshot file.
+
+    Args:
+        session: Database session.
+        case_id: ID of the test case to delete.
+
+    Raises:
+        CaseNotFoundError: If test case not found.
+    """
+    case = session.get(TestCase, case_id)
+    if not case:
+        raise CaseNotFoundError(case_id)
+
+    # Remove screenshot file if present
+    if case.screenshot_path:
+        screenshot_full_path = settings.SCREENSHOT_DIR / case.screenshot_path
+        if screenshot_full_path.exists():
+            try:
+                os.remove(screenshot_full_path)
+                logger.info(f"Deleted screenshot: {screenshot_full_path}")
+            except OSError as e:
+                logger.warning(f"Failed to delete screenshot {screenshot_full_path}: {e}")
+
+    # Delete case (cascade will remove steps)
+    session.delete(case)
+    session.commit()
+    logger.info(f"TestCase {case_id} permanently deleted")

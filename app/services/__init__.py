@@ -7,6 +7,7 @@ from app.services import (
     stats_service,
     project_service,
     epic_service,
+    feature_service,
     definition_service,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "stats_service",
     "project_service",
     "epic_service",
+    "feature_service",
     "definition_service",
 ]

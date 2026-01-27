@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}RedstoneReporter{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/static/img/redstone.png">
 
     <!-- TailwindCSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,22 +27,27 @@
             background-color: #10b981;
             color: white;
         }
+
         .status-failed {
             background-color: #ef4444;
             color: white;
         }
+
         .status-skipped {
             background-color: #6b7280;
             color: white;
         }
+
         .status-running {
             background-color: #3b82f6;
             color: white;
         }
+
         .status-completed {
             background-color: #10b981;
             color: white;
         }
+
         .status-aborted {
             background-color: #f59e0b;
             color: white;
@@ -51,14 +58,17 @@
             background-color: #ef4444;
             color: white;
         }
+
         .priority-high {
             background-color: #f97316;
             color: white;
         }
+
         .priority-medium {
             background-color: #3b82f6;
             color: white;
         }
+
         .priority-low {
             background-color: #6b7280;
             color: white;
@@ -70,9 +80,12 @@
         }
 
         @keyframes pulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 opacity: 1;
             }
+
             50% {
                 opacity: .5;
             }
@@ -90,9 +103,11 @@
         html.dark .bg-white {
             background-color: #1e293b !important;
         }
+
         html.dark .bg-gray-50 {
             background-color: #0f172a !important;
         }
+
         html.dark .bg-gray-100 {
             background-color: #334155 !important;
         }
@@ -101,33 +116,43 @@
         html.dark .bg-green-50 {
             background-color: rgba(34, 197, 94, 0.1) !important;
         }
+
         html.dark .bg-red-50 {
             background-color: rgba(239, 68, 68, 0.1) !important;
         }
+
         html.dark .bg-blue-50 {
             background-color: rgba(59, 130, 246, 0.1) !important;
         }
+
         html.dark .bg-yellow-50 {
             background-color: rgba(234, 179, 8, 0.1) !important;
         }
+
         html.dark .bg-indigo-50 {
             background-color: rgba(99, 102, 241, 0.1) !important;
         }
+
         html.dark .bg-amber-50 {
             background-color: rgba(245, 158, 11, 0.1) !important;
         }
+
         html.dark .bg-green-100 {
             background-color: rgba(34, 197, 94, 0.15) !important;
         }
+
         html.dark .bg-red-100 {
             background-color: rgba(239, 68, 68, 0.15) !important;
         }
+
         html.dark .bg-blue-100 {
             background-color: rgba(59, 130, 246, 0.15) !important;
         }
+
         html.dark .bg-indigo-100 {
             background-color: rgba(99, 102, 241, 0.15) !important;
         }
+
         html.dark .bg-gray-200 {
             background-color: #475569 !important;
         }
@@ -136,18 +161,23 @@
         html.dark .text-gray-900 {
             color: #f1f5f9 !important;
         }
+
         html.dark .text-gray-800 {
             color: #e2e8f0 !important;
         }
+
         html.dark .text-gray-700 {
             color: #cbd5e1 !important;
         }
+
         html.dark .text-gray-600 {
             color: #94a3b8 !important;
         }
+
         html.dark .text-gray-500 {
             color: #94a3b8 !important;
         }
+
         html.dark .text-gray-400 {
             color: #64748b !important;
         }
@@ -158,20 +188,24 @@
         html.dark .text-green-800 {
             color: #4ade80 !important;
         }
+
         html.dark .text-red-600,
         html.dark .text-red-700,
         html.dark .text-red-800 {
             color: #f87171 !important;
         }
+
         html.dark .text-blue-600,
         html.dark .text-blue-700 {
             color: #60a5fa !important;
         }
+
         html.dark .text-indigo-600,
         html.dark .text-indigo-700,
         html.dark .text-indigo-800 {
             color: #818cf8 !important;
         }
+
         html.dark .text-amber-700 {
             color: #fbbf24 !important;
         }
@@ -180,24 +214,29 @@
         html.dark .border-gray-200 {
             border-color: #334155 !important;
         }
+
         html.dark .border-gray-300 {
             border-color: #475569 !important;
         }
+
         html.dark .border-red-200 {
             border-color: rgba(239, 68, 68, 0.3) !important;
         }
+
         html.dark .border-amber-300 {
             border-color: rgba(245, 158, 11, 0.4) !important;
         }
+
         html.dark .border-indigo-600 {
             border-color: #818cf8 !important;
         }
+
         html.dark .border-red-600 {
             border-color: #f87171 !important;
         }
 
         /* --- Divide colors --- */
-        html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+        html.dark .divide-gray-200> :not([hidden])~ :not([hidden]) {
             border-color: #334155 !important;
         }
 
@@ -212,15 +251,19 @@
         html.dark .hover\:bg-gray-50:hover {
             background-color: #1e293b !important;
         }
+
         html.dark .hover\:bg-indigo-100:hover {
             background-color: rgba(99, 102, 241, 0.2) !important;
         }
+
         html.dark .hover\:bg-amber-100:hover {
             background-color: rgba(245, 158, 11, 0.2) !important;
         }
+
         html.dark .hover\:text-indigo-600:hover {
             color: #a5b4fc !important;
         }
+
         html.dark .hover\:text-indigo-800:hover {
             color: #a5b4fc !important;
         }
@@ -233,6 +276,7 @@
             color: #e2e8f0 !important;
             border-color: #475569 !important;
         }
+
         html.dark input:focus,
         html.dark textarea:focus,
         html.dark select:focus {
@@ -240,6 +284,7 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     <!-- Navigation Header -->
     <nav class="bg-white shadow-sm border-b border-gray-200">
@@ -247,29 +292,38 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <a href="/" class="flex items-center">
-                        <span class="text-2xl font-bold text-indigo-600">🔴 RedstoneReporter</span>
+                        <img src="/static/img/redstone.png" alt="Redstone" class="h-7 w-7 mr-1">
+                        <span class="text-2xl font-bold text-indigo-600">RedstoneReporter</span>
                     </a>
-                    <span class="ml-3 text-sm text-gray-500">AI Agent Test Reporter</span>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="/" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                         Dashboard
                     </a>
-                    <a href="/projects" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
+                    <a href="/projects"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                         Progetti
                     </a>
-                    <a href="/docs" target="_blank" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
+                    <a href="/docs" target="_blank"
+                        class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                         API Docs
                     </a>
                     <!-- Dark Mode Toggle -->
-                    <button onclick="toggleTheme()" class="p-2 rounded-md text-gray-500 hover:text-indigo-600 hover:bg-gray-100 transition-colors" title="Toggle dark/light mode">
+                    <button onclick="toggleTheme()"
+                        class="p-2 rounded-md text-gray-500 hover:text-indigo-600 hover:bg-gray-100 transition-colors"
+                        title="Toggle dark/light mode">
                         <!-- Moon icon (visible in light mode) -->
                         <svg id="theme-icon-moon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                            </path>
                         </svg>
                         <!-- Sun icon (visible in dark mode) -->
-                        <svg id="theme-icon-sun" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        <svg id="theme-icon-sun" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            style="display:none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                            </path>
                         </svg>
                     </button>
                 </div>
@@ -282,31 +336,23 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <p class="text-center text-sm text-gray-500">
-                RedstoneReporter v0.1.0 - Custom Monocart Alternative
-            </p>
-        </div>
-    </footer>
-
     <script>
-    function toggleTheme() {
-        document.documentElement.classList.toggle('dark');
-        var isDark = document.documentElement.classList.contains('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            var isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcons();
+        }
+
+        function updateThemeIcons() {
+            var isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : 'block';
+            document.getElementById('theme-icon-sun').style.display = isDark ? 'block' : 'none';
+        }
+
+        // Set correct icon on page load
         updateThemeIcons();
-    }
-
-    function updateThemeIcons() {
-        var isDark = document.documentElement.classList.contains('dark');
-        document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : 'block';
-        document.getElementById('theme-icon-sun').style.display = isDark ? 'block' : 'none';
-    }
-
-    // Set correct icon on page load
-    updateThemeIcons();
     </script>
 </body>
+
 </html>

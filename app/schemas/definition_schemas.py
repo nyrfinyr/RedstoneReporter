@@ -35,7 +35,7 @@ class UpdateTestCaseDefinitionRequest(BaseModel):
 class TestCaseDefinitionResponse(BaseModel):
     """Full response model for test case definition."""
     id: int
-    epic_id: int
+    feature_id: int
     title: str
     description: Optional[str] = None
     preconditions: Optional[str] = None
@@ -54,7 +54,7 @@ class TestCaseDefinitionResponse(BaseModel):
 class TestCaseDefinitionListResponse(BaseModel):
     """Lightweight response for listing definitions (without steps)."""
     id: int
-    epic_id: int
+    feature_id: int
     title: str
     description: Optional[str] = None
     priority: str
