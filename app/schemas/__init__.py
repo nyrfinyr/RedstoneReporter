@@ -11,6 +11,23 @@ from app.schemas.case_schemas import (
     CheckpointResponse,
     ReportTestCaseResponse
 )
+from app.schemas.project_schemas import (
+    CreateProjectRequest,
+    UpdateProjectRequest,
+    ProjectResponse
+)
+from app.schemas.epic_schemas import (
+    CreateEpicRequest,
+    UpdateEpicRequest,
+    EpicResponse
+)
+from app.schemas.definition_schemas import (
+    StepDefinition,
+    CreateTestCaseDefinitionRequest,
+    UpdateTestCaseDefinitionRequest,
+    TestCaseDefinitionResponse,
+    TestCaseDefinitionListResponse
+)
 
 __all__ = [
     "StartRunRequest",
@@ -20,4 +37,15 @@ __all__ = [
     "StepData",
     "CheckpointResponse",
     "ReportTestCaseResponse",
+    "CreateProjectRequest",
+    "UpdateProjectRequest",
+    "ProjectResponse",
+    "CreateEpicRequest",
+    "UpdateEpicRequest",
+    "EpicResponse",
+    "StepDefinition",
+    "CreateTestCaseDefinitionRequest",
+    "UpdateTestCaseDefinitionRequest",
+    "TestCaseDefinitionResponse",
+    "TestCaseDefinitionListResponse",
 ]

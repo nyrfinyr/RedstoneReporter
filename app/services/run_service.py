@@ -7,12 +7,13 @@ from typing import Optional, List
 from app.models import TestRun, RunStatus
 
 
-def create_run(session: Session, name: str) -> TestRun:
-    """Create a new test run (FR-A1).
+def create_run(session: Session, name: str, project_id: Optional[int] = None) -> TestRun:
+    """Create a new test run (FR-A1, FR-H5).
 
     Args:
         session: Database session.
         name: Name/title for the test run.
+        project_id: Optional project association.
 
     Returns:
         TestRun: The created test run with assigned ID.
@@ -20,7 +21,8 @@ def create_run(session: Session, name: str) -> TestRun:
     run = TestRun(
         name=name,
         status=RunStatus.RUNNING.value,
-        start_time=datetime.utcnow()
+        start_time=datetime.utcnow(),
+        project_id=project_id
     )
     session.add(run)
     session.commit()

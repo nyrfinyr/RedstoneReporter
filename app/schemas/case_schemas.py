@@ -26,6 +26,9 @@ class ReportTestCaseRequest(BaseModel):
     # Steps (FR-B3)
     steps: List[StepData] = Field(default_factory=list)
 
+    # Optional link to test case definition (FR-H4)
+    definition_id: Optional[int] = Field(None, description="Optional TestCaseDefinition ID")
+
     class Config:
         json_schema_extra = {
             "example": {

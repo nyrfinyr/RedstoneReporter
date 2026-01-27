@@ -6,6 +6,7 @@ from typing import Optional, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.test_case import TestCase
+    from app.models.project import Project
 
 
 class TestRun(SQLModel, table=True):
@@ -21,11 +22,15 @@ class TestRun(SQLModel, table=True):
     start_time: datetime = Field(default_factory=datetime.utcnow)
     end_time: Optional[datetime] = None
 
+    # Optional project association (FR-H5)
+    project_id: Optional[int] = Field(default=None, foreign_key="projects.id", index=True)
+
     # Relationships
     cases: List["TestCase"] = Relationship(
         back_populates="run",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
+    project: Optional["Project"] = Relationship(back_populates="runs")
 
     @property
     def duration(self) -> Optional[int]:

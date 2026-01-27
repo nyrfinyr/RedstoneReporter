@@ -9,15 +9,20 @@ import logging
 from pathlib import Path
 
 from app.config import settings
-from app.database import create_db_and_tables
+from app.database import create_db_and_tables, run_migrations
 from app.api import runs
-from app.web import routes as web_routes, htmx_routes
+from app.api import projects as projects_api
+from app.web import routes as web_routes, htmx_routes, project_routes
 from app.services.exceptions import (
     RunNotFoundError,
     CaseNotFoundError,
     InvalidStateError,
     FileUploadError,
-    ValidationError
+    ValidationError,
+    ProjectNotFoundError,
+    EpicNotFoundError,
+    TestCaseDefinitionNotFoundError,
+    DeletionConstraintError
 )
 
 # Configure logging
@@ -96,6 +101,59 @@ async def validation_error_handler(request: Request, exc: ValidationError):
     )
 
 
+@app.exception_handler(ProjectNotFoundError)
+async def project_not_found_handler(request: Request, exc: ProjectNotFoundError):
+    """Handle ProjectNotFoundError with 404 response."""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": str(exc),
+            "error_code": "PROJECT_NOT_FOUND",
+            "project_id": exc.project_id
+        }
+    )
+
+
+@app.exception_handler(EpicNotFoundError)
+async def epic_not_found_handler(request: Request, exc: EpicNotFoundError):
+    """Handle EpicNotFoundError with 404 response."""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": str(exc),
+            "error_code": "EPIC_NOT_FOUND",
+            "epic_id": exc.epic_id
+        }
+    )
+
+
+@app.exception_handler(TestCaseDefinitionNotFoundError)
+async def definition_not_found_handler(request: Request, exc: TestCaseDefinitionNotFoundError):
+    """Handle TestCaseDefinitionNotFoundError with 404 response."""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": str(exc),
+            "error_code": "DEFINITION_NOT_FOUND",
+            "definition_id": exc.definition_id
+        }
+    )
+
+
+@app.exception_handler(DeletionConstraintError)
+async def deletion_constraint_handler(request: Request, exc: DeletionConstraintError):
+    """Handle DeletionConstraintError with 409 response."""
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": str(exc),
+            "error_code": "DELETION_CONSTRAINT",
+            "resource_type": exc.resource_type,
+            "resource_id": exc.resource_id
+        }
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def request_validation_error_handler(request: Request, exc: RequestValidationError):
     """Handle Pydantic validation errors with formatted response."""
@@ -116,6 +174,10 @@ async def on_startup():
     # Create database tables if they don't exist (NFR-04)
     create_db_and_tables()
     logger.info("Database initialized successfully")
+
+    # Run migrations for adding new columns to existing tables (NFR-07)
+    run_migrations()
+    logger.info("Database migrations completed")
 
     # Verify screenshot directory exists
     if settings.SCREENSHOT_DIR.exists():
@@ -138,9 +200,15 @@ async def health_check():
 app.include_router(runs.router, prefix="/api/runs", tags=["runs"])
 logger.info("API routes mounted at /api/runs")
 
+app.include_router(projects_api.router, prefix="/api", tags=["projects"])
+logger.info("Projects API routes mounted at /api")
+
 # Include Web UI routers
 app.include_router(web_routes.router, tags=["web"])
 logger.info("Web routes mounted")
+
+app.include_router(project_routes.router, tags=["web-projects"])
+logger.info("Project web routes mounted")
 
 # Include HTMX partial routers
 app.include_router(htmx_routes.router, prefix="/api/htmx", tags=["htmx"])

@@ -16,6 +16,12 @@
                         {% endif %}
                         {{ run.status|upper }}
                     </span>
+                    <!-- Project Badge (FR-J2) -->
+                    {% if run.project %}
+                    <a href="/projects/{{ run.project.id }}" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+                        {{ run.project.name }}
+                    </a>
+                    {% endif %}
                 </div>
 
                 <!-- Metadata -->
@@ -65,27 +71,42 @@
                 </div>
             </div>
 
-            <!-- Visual Indicator -->
-            <div class="ml-6">
-                {% if run.failed_count > 0 %}
-                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
-                    <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            <!-- Close Button + Visual Indicator -->
+            <div class="ml-6 flex items-center space-x-3">
+                <!-- Close Run Button (FR-L1, FR-L2, FR-L3) -->
+                {% if run.status == 'running' %}
+                <button onclick="closeRun({{ run.id }})"
+                        class="inline-flex items-center px-3 py-1.5 border border-amber-300 rounded-md text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors"
+                        title="Chiudi questa Run manualmente">
+                    <svg class="h-3.5 w-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        <rect x="6" y="6" width="12" height="12" rx="1"></rect>
                     </svg>
-                </div>
-                {% elif run.status == 'completed' %}
-                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
-                    <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                {% else %}
-                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
-                    <svg class="h-8 w-8 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>
+                    Chiudi
+                </button>
+                {% endif %}
+
+                <!-- Visual Indicator: Percentage Badge (FR-M1, FR-M2, FR-M3, FR-M4) -->
+                {% if run.test_count > 0 %}
+                    {% set pct = (run.passed_count * 100 / run.test_count)|round|int %}
+                    {% if pct <= 50 %}
+                        {% set hue = (pct * 48 / 50)|round|int %}
+                    {% else %}
+                        {% set hue = (48 + (pct - 50) * 94 / 50)|round|int %}
+                    {% endif %}
+                    <div class="flex items-center justify-center h-16 w-16 rounded-full"
+                         style="background-color: hsl({{ hue }}, 80%, 95%);">
+                        <span class="text-sm font-bold" style="color: hsl({{ hue }}, 80%, 38%);">
+                            {{ pct }}%
+                        </span>
+                    </div>
+                {% elif run.status == 'running' %}
+                    <!-- Spinner for running runs with no tests yet -->
+                    <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
+                        <svg class="h-8 w-8 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
                 {% endif %}
             </div>
         </div>

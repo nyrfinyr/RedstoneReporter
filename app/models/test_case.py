@@ -7,6 +7,7 @@ from typing import Optional, List, TYPE_CHECKING
 if TYPE_CHECKING:
     from app.models.test_run import TestRun
     from app.models.test_step import TestStep
+    from app.models.test_case_definition import TestCaseDefinition
 
 
 class TestCase(SQLModel, table=True):
@@ -36,12 +37,16 @@ class TestCase(SQLModel, table=True):
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    # Optional link to test case definition (FR-H4)
+    definition_id: Optional[int] = Field(default=None, foreign_key="test_case_definitions.id", index=True)
+
     # Relationships
     run: "TestRun" = Relationship(back_populates="cases")
     steps: List["TestStep"] = Relationship(
         back_populates="case",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
+    definition: Optional["TestCaseDefinition"] = Relationship(back_populates="executions")
 
     @property
     def has_screenshot(self) -> bool:

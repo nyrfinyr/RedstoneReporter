@@ -33,15 +33,11 @@ async def dashboard(
     # Get recent test runs
     runs = run_service.list_runs(session, limit=50)
 
-    # Calculate global statistics
-    stats = stats_service.calculate_global_statistics(session)
-
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
-            "runs": runs,
-            "stats": stats
+            "runs": runs
         }
     )
 

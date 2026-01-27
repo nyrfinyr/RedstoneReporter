@@ -6,8 +6,9 @@ from typing import Optional
 
 
 class StartRunRequest(BaseModel):
-    """Request model for starting a new test run (FR-A1)."""
+    """Request model for starting a new test run (FR-A1, FR-H5)."""
     name: str = Field(..., min_length=1, max_length=255, description="Test run name/title")
+    project_id: Optional[int] = Field(None, description="Optional project association")
 
 
 class RunResponse(BaseModel):
@@ -18,6 +19,7 @@ class RunResponse(BaseModel):
     start_time: datetime
     end_time: Optional[datetime] = None
     duration: Optional[int] = None  # milliseconds
+    project_id: Optional[int] = None
 
     # Statistics (computed properties)
     test_count: int = 0

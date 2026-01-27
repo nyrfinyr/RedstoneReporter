@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}{% if definition %}Modifica{% else %}Nuovo{% endif %} Test Case - RedstoneReporter{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Breadcrumb -->
+    <nav class="flex" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
+            <li><a href="/projects" class="hover:text-indigo-600">Progetti</a></li>
+            <li><span class="mx-1">/</span></li>
+            <li><a href="/projects/{{ project.id }}" class="hover:text-indigo-600">{{ project.name }}</a></li>
+            <li><span class="mx-1">/</span></li>
+            <li><a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="hover:text-indigo-600">{{ epic.name }}</a></li>
+            <li><span class="mx-1">/</span></li>
+            <li class="font-medium text-gray-900">{% if definition %}Modifica{% else %}Nuovo{% endif %} Test Case</li>
+        </ol>
+    </nav>
+
+    <!-- Form -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">
+            {% if definition %}Modifica Test Case{% else %}Nuovo Test Case{% endif %}
+        </h1>
+
+        <form id="definition-form" class="space-y-6">
+            <!-- Title -->
+            <div>
+                <label for="def-title" class="block text-sm font-medium text-gray-700">Titolo *</label>
+                <input type="text" id="def-title" name="title" required maxlength="255"
+                       value="{{ definition.title if definition else '' }}"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="def-description" class="block text-sm font-medium text-gray-700">Descrizione</label>
+                <textarea id="def-description" name="description" rows="3" maxlength="2000"
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">{{ definition.description if definition and definition.description else '' }}</textarea>
+            </div>
+
+            <!-- Preconditions -->
+            <div>
+                <label for="def-preconditions" class="block text-sm font-medium text-gray-700">Precondizioni</label>
+                <textarea id="def-preconditions" name="preconditions" rows="2" maxlength="2000"
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">{{ definition.preconditions if definition and definition.preconditions else '' }}</textarea>
+            </div>
+
+            <!-- Steps (FR-UI4: dynamic add/remove) -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Step</label>
+                    <button type="button" onclick="addStep()"
+                            class="inline-flex items-center px-3 py-1 border border-indigo-300 rounded-md text-sm font-medium text-indigo-700 bg-white hover:bg-indigo-50">
+                        <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Aggiungi Step
+                    </button>
+                </div>
+                <div id="steps-container" class="space-y-2">
+                    <!-- Steps will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Expected Result -->
+            <div>
+                <label for="def-expected-result" class="block text-sm font-medium text-gray-700">Risultato Atteso</label>
+                <textarea id="def-expected-result" name="expected_result" rows="2" maxlength="2000"
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">{{ definition.expected_result if definition and definition.expected_result else '' }}</textarea>
+            </div>
+
+            <!-- Priority -->
+            <div>
+                <label for="def-priority" class="block text-sm font-medium text-gray-700">Priorita'</label>
+                <select id="def-priority" name="priority"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
+                    <option value="critical" {% if definition and definition.priority == 'critical' %}selected{% endif %}>Critical</option>
+                    <option value="high" {% if definition and definition.priority == 'high' %}selected{% endif %}>High</option>
+                    <option value="medium" {% if definition and definition.priority == 'medium' %}selected{% endif %} {% if not definition %}selected{% endif %}>Medium</option>
+                    <option value="low" {% if definition and definition.priority == 'low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex justify-end space-x-3">
+                <a href="/projects/{{ project.id }}/epics/{{ epic.id }}"
+                   class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Annulla
+                </a>
+                <button type="submit"
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                    {% if definition %}Salva Modifiche{% else %}Crea Test Case{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let stepCounter = 0;
+
+function addStep(description) {
+    const container = document.getElementById('steps-container');
+    const stepDiv = document.createElement('div');
+    stepDiv.className = 'flex items-center space-x-2';
+    stepDiv.id = 'step-' + stepCounter;
+
+    const orderSpan = document.createElement('span');
+    orderSpan.className = 'flex-shrink-0 text-sm font-medium text-gray-500 w-8 text-center';
+    orderSpan.textContent = (container.children.length + 1) + '.';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'step-desc';
+    input.maxLength = 500;
+    input.required = true;
+    input.value = description || '';
+    input.placeholder = 'Descrizione dello step...';
+    input.className = 'flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'flex-shrink-0 px-2 py-2 border border-red-300 rounded-md text-sm text-red-600 hover:bg-red-50';
+    removeBtn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+    removeBtn.onclick = function() {
+        stepDiv.remove();
+        renumberSteps();
+    };
+
+    stepDiv.appendChild(orderSpan);
+    stepDiv.appendChild(input);
+    stepDiv.appendChild(removeBtn);
+    container.appendChild(stepDiv);
+    stepCounter++;
+}
+
+function renumberSteps() {
+    const container = document.getElementById('steps-container');
+    Array.from(container.children).forEach(function(stepDiv, index) {
+        stepDiv.querySelector('span').textContent = (index + 1) + '.';
+    });
+}
+
+function collectSteps() {
+    const inputs = document.querySelectorAll('#steps-container input[name="step-desc"]');
+    const steps = [];
+    inputs.forEach(function(input, index) {
+        if (input.value.trim()) {
+            steps.push({description: input.value.trim(), order: index});
+        }
+    });
+    return steps;
+}
+
+// Initialize existing steps (edit mode)
+{% if definition and definition.steps %}
+{% for step in definition.steps|sort(attribute='order') %}
+addStep('{{ step.description|e }}');
+{% endfor %}
+{% endif %}
+
+// Form submission
+document.getElementById('definition-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const payload = {
+        title: document.getElementById('def-title').value,
+        description: document.getElementById('def-description').value || null,
+        preconditions: document.getElementById('def-preconditions').value || null,
+        steps: collectSteps(),
+        expected_result: document.getElementById('def-expected-result').value || null,
+        priority: document.getElementById('def-priority').value
+    };
+
+    try {
+        let url, method;
+        {% if definition %}
+        url = '/api/test-cases/{{ definition.id }}';
+        method = 'PUT';
+        {% else %}
+        url = '/api/epics/{{ epic.id }}/test-cases';
+        method = 'POST';
+        {% endif %}
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            window.location.href = '/test-cases/' + data.id;
+        } else {
+            const data = await response.json();
+            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
+        }
+    } catch (err) {
+        alert('Errore di rete: ' + err.message);
+    }
+});
+</script>
+{% endblock %}

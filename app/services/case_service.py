@@ -51,7 +51,8 @@ def create_test_case(
         duration=case_data.get("duration"),
         error_message=case_data.get("error_message"),
         error_stack=case_data.get("error_stack"),
-        screenshot_path=screenshot_path
+        screenshot_path=screenshot_path,
+        definition_id=case_data.get("definition_id")  # FR-H4
     )
     session.add(case)
     session.flush()  # Get case.id without committing

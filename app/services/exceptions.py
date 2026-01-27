@@ -67,3 +67,36 @@ class InvalidTestDataError(ValidationError):
     def __init__(self, field: str, message: str):
         self.field = field
         super().__init__(f"Invalid data for field '{field}': {message}")
+
+
+class ProjectNotFoundError(ResourceNotFoundError):
+    """Project not found."""
+
+    def __init__(self, project_id: int):
+        self.project_id = project_id
+        super().__init__(f"Project with ID {project_id} not found")
+
+
+class EpicNotFoundError(ResourceNotFoundError):
+    """Epic not found."""
+
+    def __init__(self, epic_id: int):
+        self.epic_id = epic_id
+        super().__init__(f"Epic with ID {epic_id} not found")
+
+
+class TestCaseDefinitionNotFoundError(ResourceNotFoundError):
+    """Test case definition not found."""
+
+    def __init__(self, definition_id: int):
+        self.definition_id = definition_id
+        super().__init__(f"TestCaseDefinition with ID {definition_id} not found")
+
+
+class DeletionConstraintError(ReporterException):
+    """Cannot delete resource due to dependent resources."""
+
+    def __init__(self, resource_type: str, resource_id: int, reason: str):
+        self.resource_type = resource_type
+        self.resource_id = resource_id
+        super().__init__(f"Cannot delete {resource_type} with ID {resource_id}: {reason}")

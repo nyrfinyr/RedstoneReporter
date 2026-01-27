@@ -40,7 +40,7 @@ async def start_run(
     """
     logger.info(f"Creating new test run: {request.name}")
 
-    run = run_service.create_run(session, request.name)
+    run = run_service.create_run(session, request.name, project_id=request.project_id)
 
     logger.info(f"Test run created with ID: {run.id}")
 
@@ -51,6 +51,7 @@ async def start_run(
         start_time=run.start_time,
         end_time=run.end_time,
         duration=run.duration,
+        project_id=run.project_id,
         test_count=run.test_count,
         passed_count=run.passed_count,
         failed_count=run.failed_count,
@@ -265,6 +266,7 @@ async def get_run(
         start_time=run.start_time,
         end_time=run.end_time,
         duration=run.duration,
+        project_id=run.project_id,
         test_count=run.test_count,
         passed_count=run.passed_count,
         failed_count=run.failed_count,

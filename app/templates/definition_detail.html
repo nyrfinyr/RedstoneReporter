@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{{ definition.title }} - RedstoneReporter{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Breadcrumb -->
+    <nav class="flex" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
+            <li><a href="/projects" class="hover:text-indigo-600">Progetti</a></li>
+            <li><span class="mx-1">/</span></li>
+            <li><a href="/projects/{{ project.id }}" class="hover:text-indigo-600">{{ project.name }}</a></li>
+            <li><span class="mx-1">/</span></li>
+            <li><a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="hover:text-indigo-600">{{ epic.name }}</a></li>
+            <li><span class="mx-1">/</span></li>
+            <li class="font-medium text-gray-900">{{ definition.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- Definition Header -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-2xl font-bold text-gray-900">{{ definition.title }}</h1>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium priority-{{ definition.priority }}">
+                        {{ definition.priority|upper }}
+                    </span>
+                    {% if not definition.is_active %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                        INATTIVO
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ATTIVO
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="mt-2 text-sm text-gray-500">
+                    Creato: {{ definition.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    | Aggiornato: {{ definition.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                </div>
+            </div>
+            <div class="ml-4 flex items-center space-x-2">
+                <a href="/test-cases/{{ definition.id }}/edit"
+                   class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    Modifica
+                </a>
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if definition.description %}
+        <div class="mt-6">
+            <h3 class="text-sm font-medium text-gray-700">Descrizione</h3>
+            <p class="mt-1 text-gray-600">{{ definition.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Preconditions -->
+        {% if definition.preconditions %}
+        <div class="mt-4">
+            <h3 class="text-sm font-medium text-gray-700">Precondizioni</h3>
+            <p class="mt-1 text-gray-600 bg-yellow-50 p-3 rounded-md">{{ definition.preconditions }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Steps -->
+        {% if definition.steps %}
+        <div class="mt-6">
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Step ({{ definition.steps|length }})</h3>
+            <ol class="space-y-2">
+                {% for step in definition.steps|sort(attribute='order') %}
+                <li class="flex items-start">
+                    <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-medium mr-3">
+                        {{ step.order + 1 }}
+                    </span>
+                    <span class="text-gray-700">{{ step.description }}</span>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
+        <!-- Expected Result -->
+        {% if definition.expected_result %}
+        <div class="mt-4">
+            <h3 class="text-sm font-medium text-gray-700">Risultato Atteso</h3>
+            <p class="mt-1 text-gray-600 bg-green-50 p-3 rounded-md">{{ definition.expected_result }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Execution History (FR-G4, FR-G5) -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Storico Esecuzioni ({{ executions|length }})</h2>
+        </div>
+
+        {% if executions %}
+        <div class="divide-y divide-gray-200">
+            {% for exec in executions %}
+            <div class="px-6 py-4 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-{{ exec.status }}">
+                            {{ exec.status|upper }}
+                        </span>
+                        <span class="text-sm font-medium text-gray-900">{{ exec.name }}</span>
+                        {% if exec.run %}
+                        <a href="/runs/{{ exec.run_id }}" class="text-sm text-indigo-600 hover:text-indigo-800">
+                            Run #{{ exec.run_id }}
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        {% if exec.duration %}
+                        {{ "%.2f"|format(exec.duration / 1000) }}s
+                        {% endif %}
+                        | {{ exec.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+                {% if exec.error_message %}
+                <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                    {{ exec.error_message }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="px-6 py-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Nessuna esecuzione</h3>
+            <p class="mt-1 text-sm text-gray-500">Questo test case non e' stato ancora eseguito.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
