@@ -1,0 +1,314 @@
+/* ============================================================
+   RedstoneReporter — layout.css
+   Sidebar, main content area, top bar, grid system.
+   ============================================================ */
+
+/* --- App Shell --- */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--color-sidebar-bg);
+    border-right: 1px solid var(--color-sidebar-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: transform var(--transition-slow);
+}
+
+/* Sidebar Header (logo + brand) */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: var(--space-lg) var(--space-lg);
+    gap: var(--space-sm);
+    flex-shrink: 0;
+}
+
+.sidebar-logo {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+}
+
+.sidebar-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    white-space: nowrap;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sidebar-section-title {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    padding: var(--space-md) var(--space-md) var(--space-sm);
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 10px var(--space-md);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.sidebar-nav-item:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.sidebar-nav-item.active {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.sidebar-nav-item svg,
+.sidebar-nav-item .nav-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Sub-navigation (contextual hierarchy) */
+.sidebar-subnav {
+    padding-left: calc(var(--space-md) + 28px);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.sidebar-subnav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 6px var(--space-sm);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-subnav-item:hover {
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
+}
+
+.sidebar-subnav-item.active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.sidebar-subnav-item::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-border);
+    flex-shrink: 0;
+}
+
+.sidebar-subnav-item.active::before {
+    background-color: var(--color-primary);
+}
+
+/* Sidebar Footer (theme toggle) */
+.sidebar-footer {
+    flex-shrink: 0;
+    padding: var(--space-md) var(--space-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 10px var(--space-md);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* --- Main Content Area --- */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    padding: var(--space-xl) var(--space-xl);
+    max-width: calc(100% - var(--sidebar-width));
+    min-height: 100vh;
+}
+
+.content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.content-wrapper > * + * {
+    margin-top: var(--space-lg);
+}
+
+/* --- Mobile Sidebar --- */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+}
+
+.sidebar-backdrop.show {
+    display: block;
+}
+
+.hamburger-btn {
+    display: none;
+    position: fixed;
+    top: var(--space-md);
+    left: var(--space-md);
+    z-index: 98;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.hamburger-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Responsive breakpoint */
+@media (max-width: 1023px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .main-content {
+        margin-left: 0;
+        max-width: 100%;
+        padding: var(--space-xl) var(--space-md);
+        padding-top: 64px; /* room for hamburger */
+    }
+
+    .hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* --- Grid System --- */
+.grid {
+    display: grid;
+    gap: var(--space-md);
+}
+
+.grid-cols-1 { grid-template-columns: 1fr; }
+
+@media (min-width: 640px) {
+    .grid-cols-sm-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 768px) {
+    .grid-cols-md-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-cols-md-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-cols-md-5 { grid-template-columns: repeat(5, 1fr); }
+}
+
+@media (min-width: 1024px) {
+    .grid-cols-lg-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* --- Page Header --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.page-header-info h1 {
+    color: var(--color-text-primary);
+}
+
+.page-header-info p {
+    margin-top: var(--space-xs);
+    color: var(--color-text-secondary);
+    font-size: 0.8125rem;
+}
+
+/* --- Section Header --- */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.section-header h2 {
+    color: var(--color-text-primary);
+}

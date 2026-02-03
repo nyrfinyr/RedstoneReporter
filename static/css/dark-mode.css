@@ -1,0 +1,151 @@
+/* ============================================================
+   RedstoneReporter — dark-mode.css
+   Dark theme overrides using CSS custom properties.
+   ============================================================ */
+
+html.dark {
+    /* Primary */
+    --color-primary: #5D87FF;
+    --color-primary-light: rgba(93, 135, 255, 0.12);
+    --color-primary-dark: #7BA1FF;
+
+    /* Surfaces */
+    --color-surface: #202940;
+    --color-background: #171D2E;
+    --color-sidebar-bg: #111C2D;
+    --color-sidebar-border: #1E2A3E;
+
+    /* Text */
+    --color-text-primary: #E2E8F0;
+    --color-text-secondary: #94A3B8;
+    --color-text-muted: #64748B;
+    --color-text-inverse: #FFFFFF;
+
+    /* Borders */
+    --color-border: #2A3650;
+    --color-border-light: #1E2A3E;
+    --color-divider: #2A3650;
+
+    /* Status */
+    --color-success: #13DEB9;
+    --color-success-light: rgba(19, 222, 185, 0.12);
+    --color-success-text: #4ADE80;
+    --color-error: #FA896B;
+    --color-error-light: rgba(250, 137, 107, 0.12);
+    --color-error-text: #F87171;
+    --color-warning: #FFAE1F;
+    --color-warning-light: rgba(255, 174, 31, 0.12);
+    --color-warning-text: #FBBF24;
+    --color-info: #539BFF;
+    --color-info-light: rgba(83, 155, 255, 0.12);
+    --color-info-text: #60A5FA;
+
+    /* Priority */
+    --color-priority-critical: #F87171;
+    --color-priority-high: #FBBF24;
+    --color-priority-medium: #60A5FA;
+    --color-priority-low: #94A3B8;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Dark mode specific overrides --- */
+
+/* Body */
+html.dark body {
+    color-scheme: dark;
+}
+
+/* Form inputs */
+html.dark .form-input,
+html.dark .form-textarea,
+html.dark .form-select {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+}
+
+html.dark .form-input:focus,
+html.dark .form-textarea:focus,
+html.dark .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(93, 135, 255, 0.2);
+}
+
+/* Code block stays dark in both modes */
+html.dark .code-block {
+    background-color: #0F172A;
+}
+
+/* Stat card - purple variant for dark mode */
+html.dark .stat-card.purple {
+    background-color: rgba(124, 58, 237, 0.12);
+}
+html.dark .stat-card.purple .stat-card-label { color: #A78BFA; }
+html.dark .stat-card.purple .stat-card-value { color: #A78BFA; }
+
+/* Percentage circle hue-based inline styles need adjustment */
+/* These are handled via inline hsl() in the template */
+
+/* Sidebar active item in dark */
+html.dark .sidebar-nav-item:hover {
+    background-color: rgba(93, 135, 255, 0.12);
+    color: var(--color-primary);
+}
+
+html.dark .sidebar-nav-item.active {
+    background-color: rgba(93, 135, 255, 0.15);
+    color: var(--color-primary);
+}
+
+html.dark .sidebar-subnav-item:hover {
+    background-color: rgba(93, 135, 255, 0.08);
+}
+
+/* Theme toggle in dark */
+html.dark .theme-toggle:hover {
+    background-color: rgba(93, 135, 255, 0.12);
+    color: var(--color-primary);
+}
+
+/* Hamburger button dark */
+html.dark .hamburger-btn {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+/* Badge subtle dark */
+html.dark .badge-subtle {
+    background-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+/* Step builder remove button */
+html.dark .btn-icon {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+/* Scrollbar styling for dark mode */
+html.dark ::-webkit-scrollbar {
+    width: 8px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+    background: var(--color-background);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+}
