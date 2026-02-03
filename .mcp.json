@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "mongo": {
+            "type": "http",
+            "url": "http://localhost:3001/mcp"
+        },
+        "playwright": {
+            "type": "http",
+            "url": "http://localhost:3003/mcp"
+        }
+    }
+}

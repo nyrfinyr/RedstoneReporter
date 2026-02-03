@@ -7,8 +7,9 @@ from pathlib import Path
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
-    # Database
-    DATABASE_URL: str = "sqlite:///./data/redstone.db"
+    # MongoDB
+    MONGODB_URI: str = "mongodb://localhost:27017"
+    MONGODB_DB_NAME: str = "redstone_reporter"
 
     # Storage
     SCREENSHOT_DIR: Path = Path("./data/screenshots")
@@ -35,4 +36,3 @@ settings = Settings()
 
 # Auto-create required directories
 settings.SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
-Path("data").mkdir(exist_ok=True)

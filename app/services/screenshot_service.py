@@ -26,7 +26,7 @@ def slugify(text: str) -> str:
 
 
 async def save_screenshot(
-    run_id: int,
+    run_id: str,
     case_name: str,
     file: UploadFile
 ) -> str:

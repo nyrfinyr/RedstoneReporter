@@ -27,7 +27,7 @@ class ReportTestCaseRequest(BaseModel):
     steps: List[StepData] = Field(default_factory=list)
 
     # Optional link to test case definition (FR-H4)
-    definition_id: Optional[int] = Field(None, description="Optional TestCaseDefinition ID")
+    definition_id: Optional[str] = Field(None, description="Optional TestCaseDefinition ObjectId")
 
     class Config:
         json_schema_extra = {
@@ -47,20 +47,20 @@ class ReportTestCaseRequest(BaseModel):
 class ReportTestCaseResponse(BaseModel):
     """Response model for reporting a test case."""
     success: bool
-    case_id: int
+    case_id: str
     message: str = "Test case reported successfully"
 
 
 class CheckpointResponse(BaseModel):
     """Response model for checkpoint query (FR-C1)."""
-    run_id: int
+    run_id: str
     completed_test_names: List[str]
     total_completed: int
 
     class Config:
         json_schema_extra = {
             "example": {
-                "run_id": 1,
+                "run_id": "507f1f77bcf86cd799439011",
                 "completed_test_names": ["Login Test", "Payment Test", "Logout Test"],
                 "total_completed": 3
             }

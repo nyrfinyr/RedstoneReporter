@@ -1,4 +1,22 @@
 services:
+  mongodb:
+    image: mongo:8.0
+    container_name: redstone-mongo
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=redstone_reporter
+    ports:
+      - "27111:27017"
+    networks:
+      - redstone-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   redstone-reporter:
     build:
       context: .
@@ -7,14 +25,15 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      # Mount data directory to persist database and screenshots
+      # Mount data directory to persist screenshots
       - ./data:/app/data
       # Mount app code for development (optional - comment out for production)
       - ./app:/app/app
       - ./static:/app/static
     environment:
-      # Database configuration
-      - DATABASE_URL=sqlite:////app/data/redstone.db
+      # MongoDB configuration
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DB_NAME=redstone_reporter
       # Storage configuration
       - SCREENSHOT_DIR=/app/data/screenshots
       # Server configuration
@@ -26,6 +45,9 @@ services:
       - RUNS_PER_PAGE=50
       - AUTO_REFRESH_INTERVAL=5
     restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -40,5 +62,5 @@ networks:
     driver: bridge
 
 volumes:
-  redstone-data:
+  mongo-data:
     driver: local

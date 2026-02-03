@@ -1,5 +1,7 @@
 """Custom exceptions for RedstoneReporter services."""
 
+from typing import Any
+
 
 class ReporterException(Exception):
     """Base exception for all reporter errors."""
@@ -14,7 +16,7 @@ class ResourceNotFoundError(ReporterException):
 class RunNotFoundError(ResourceNotFoundError):
     """Test run not found."""
 
-    def __init__(self, run_id: int):
+    def __init__(self, run_id: Any):
         self.run_id = run_id
         super().__init__(f"Test run with ID {run_id} not found")
 
@@ -22,7 +24,7 @@ class RunNotFoundError(ResourceNotFoundError):
 class CaseNotFoundError(ResourceNotFoundError):
     """Test case not found."""
 
-    def __init__(self, case_id: int):
+    def __init__(self, case_id: Any):
         self.case_id = case_id
         super().__init__(f"Test case with ID {case_id} not found")
 
@@ -72,7 +74,7 @@ class InvalidTestDataError(ValidationError):
 class ProjectNotFoundError(ResourceNotFoundError):
     """Project not found."""
 
-    def __init__(self, project_id: int):
+    def __init__(self, project_id: Any):
         self.project_id = project_id
         super().__init__(f"Project with ID {project_id} not found")
 
@@ -80,7 +82,7 @@ class ProjectNotFoundError(ResourceNotFoundError):
 class EpicNotFoundError(ResourceNotFoundError):
     """Epic not found."""
 
-    def __init__(self, epic_id: int):
+    def __init__(self, epic_id: Any):
         self.epic_id = epic_id
         super().__init__(f"Epic with ID {epic_id} not found")
 
@@ -88,7 +90,7 @@ class EpicNotFoundError(ResourceNotFoundError):
 class FeatureNotFoundError(ResourceNotFoundError):
     """Feature not found."""
 
-    def __init__(self, feature_id: int):
+    def __init__(self, feature_id: Any):
         self.feature_id = feature_id
         super().__init__(f"Feature with ID {feature_id} not found")
 
@@ -96,7 +98,7 @@ class FeatureNotFoundError(ResourceNotFoundError):
 class TestCaseDefinitionNotFoundError(ResourceNotFoundError):
     """Test case definition not found."""
 
-    def __init__(self, definition_id: int):
+    def __init__(self, definition_id: Any):
         self.definition_id = definition_id
         super().__init__(f"TestCaseDefinition with ID {definition_id} not found")
 
@@ -104,7 +106,7 @@ class TestCaseDefinitionNotFoundError(ResourceNotFoundError):
 class DeletionConstraintError(ReporterException):
     """Cannot delete resource due to dependent resources."""
 
-    def __init__(self, resource_type: str, resource_id: int, reason: str):
+    def __init__(self, resource_type: str, resource_id: Any, reason: str):
         self.resource_type = resource_type
         self.resource_id = resource_id
         super().__init__(f"Cannot delete {resource_type} with ID {resource_id}: {reason}")

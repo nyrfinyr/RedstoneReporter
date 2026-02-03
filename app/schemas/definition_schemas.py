@@ -34,8 +34,8 @@ class UpdateTestCaseDefinitionRequest(BaseModel):
 
 class TestCaseDefinitionResponse(BaseModel):
     """Full response model for test case definition."""
-    id: int
-    feature_id: int
+    id: str
+    feature_id: str
     title: str
     description: Optional[str] = None
     preconditions: Optional[str] = None
@@ -47,20 +47,14 @@ class TestCaseDefinitionResponse(BaseModel):
     updated_at: datetime
     execution_count: int = 0
 
-    class Config:
-        from_attributes = True
-
 
 class TestCaseDefinitionListResponse(BaseModel):
     """Lightweight response for listing definitions (without steps)."""
-    id: int
-    feature_id: int
+    id: str
+    feature_id: str
     title: str
     description: Optional[str] = None
     priority: str
     is_active: bool
     created_at: datetime
     execution_count: int = 0
-
-    class Config:
-        from_attributes = True

@@ -1,114 +1,93 @@
-"""Service layer for Project operations."""
+"""Service layer for Project operations - async with Beanie."""
 
-from sqlmodel import Session, select
 from datetime import datetime
 from typing import Optional, List
+from beanie import PydanticObjectId
 import logging
 
-from app.models import Project
+from app.models import Project, Epic, Feature, TestCaseDefinition, TestRun
 from app.services.exceptions import ProjectNotFoundError, DeletionConstraintError
 
 logger = logging.getLogger(__name__)
 
 
-def create_project(session: Session, name: str, description: Optional[str] = None) -> Project:
-    """Create a new project (FR-E1).
-
-    Args:
-        session: Database session.
-        name: Project name (must be unique).
-        description: Optional project description.
-
-    Returns:
-        Project: The created project with assigned ID.
-    """
-    project = Project(
-        name=name,
-        description=description,
-        created_at=datetime.utcnow()
-    )
-    session.add(project)
-    session.commit()
-    session.refresh(project)
+async def create_project(name: str, description: Optional[str] = None) -> Project:
+    """Create a new project (FR-E1)."""
+    project = Project(name=name, description=description, created_at=datetime.utcnow())
+    await project.insert()
     logger.info(f"Project created with ID: {project.id}")
     return project
 
 
-def get_project(session: Session, project_id: int) -> Optional[Project]:
-    """Get a project by ID.
-
-    Args:
-        session: Database session.
-        project_id: ID of the project.
-
-    Returns:
-        Optional[Project]: The project if found, None otherwise.
-    """
-    return session.get(Project, project_id)
+async def get_project(project_id: str) -> Optional[Project]:
+    """Get a project by ID."""
+    return await Project.get(PydanticObjectId(project_id))
 
 
-def list_projects(session: Session) -> List[Project]:
-    """List all projects ordered by creation time (most recent first).
-
-    Args:
-        session: Database session.
-
-    Returns:
-        List[Project]: List of all projects.
-    """
-    statement = select(Project).order_by(Project.created_at.desc())
-    return list(session.exec(statement))
+async def list_projects() -> List[Project]:
+    """List all projects ordered by creation time (most recent first)."""
+    return await Project.find_all().sort("-created_at").to_list()
 
 
-def update_project(session: Session, project_id: int, **kwargs) -> Project:
-    """Update a project's fields.
-
-    Args:
-        session: Database session.
-        project_id: ID of the project to update.
-        **kwargs: Fields to update (name, description).
-
-    Returns:
-        Project: The updated project.
-
-    Raises:
-        ProjectNotFoundError: If project not found.
-    """
-    project = session.get(Project, project_id)
+async def update_project(project_id: str, **kwargs) -> Project:
+    """Update a project's fields."""
+    project = await Project.get(PydanticObjectId(project_id))
     if not project:
         raise ProjectNotFoundError(project_id)
-
     for key, value in kwargs.items():
         if value is not None:
             setattr(project, key, value)
-
-    session.add(project)
-    session.commit()
-    session.refresh(project)
+    await project.save()
     logger.info(f"Project {project_id} updated")
     return project
 
 
-def delete_project(session: Session, project_id: int) -> None:
-    """Delete a project (FR-E3: with constraint checks).
-
-    Args:
-        session: Database session.
-        project_id: ID of the project to delete.
-
-    Raises:
-        ProjectNotFoundError: If project not found.
-        DeletionConstraintError: If project has associated epics or runs.
-    """
-    project = session.get(Project, project_id)
+async def delete_project(project_id: str) -> None:
+    """Delete a project (FR-E3: with constraint checks)."""
+    project = await Project.get(PydanticObjectId(project_id))
     if not project:
         raise ProjectNotFoundError(project_id)
-
-    if project.epics and len(project.epics) > 0:
+    oid = PydanticObjectId(project_id)
+    epic_count = await Epic.find(Epic.project_id == oid).count()
+    if epic_count > 0:
         raise DeletionConstraintError("Project", project_id, "has associated Epics")
-    if project.runs and len(project.runs) > 0:
+    run_count = await TestRun.find(TestRun.project_id == oid).count()
+    if run_count > 0:
         raise DeletionConstraintError("Project", project_id, "has associated TestRuns")
-
-    session.delete(project)
-    session.commit()
+    await project.delete()
     logger.info(f"Project {project_id} deleted")
+
+
+async def get_epic_count(project_id: str) -> int:
+    """Count epics for a project."""
+    return await Epic.find(Epic.project_id == PydanticObjectId(project_id)).count()
+
+
+async def get_test_definition_count(project_id: str) -> int:
+    """Count test definitions across all epics/features of a project."""
+    oid = PydanticObjectId(project_id)
+    epics = await Epic.find(Epic.project_id == oid).to_list()
+    epic_ids = [e.id for e in epics]
+    if not epic_ids:
+        return 0
+    features = await Feature.find({"epic_id": {"$in": epic_ids}}).to_list()
+    feature_ids = [f.id for f in features]
+    if not feature_ids:
+        return 0
+    return await TestCaseDefinition.find({"feature_id": {"$in": feature_ids}}).count()
+
+
+async def get_active_test_definition_count(project_id: str) -> int:
+    """Count active test definitions across all epics/features of a project."""
+    oid = PydanticObjectId(project_id)
+    epics = await Epic.find(Epic.project_id == oid).to_list()
+    epic_ids = [e.id for e in epics]
+    if not epic_ids:
+        return 0
+    features = await Feature.find({"epic_id": {"$in": epic_ids}}).to_list()
+    feature_ids = [f.id for f in features]
+    if not feature_ids:
+        return 0
+    return await TestCaseDefinition.find(
+        {"feature_id": {"$in": feature_ids}, "is_active": True}
+    ).count()

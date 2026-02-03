@@ -1,13 +1,11 @@
 """Web UI route handlers for projects, epics, features, and test case definitions."""
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlmodel import Session
 from pathlib import Path
 
-from app.database.session import get_session
-from app.services import project_service, epic_service, feature_service, definition_service
+from app.services import project_service, epic_service, feature_service, definition_service, case_service
 
 templates = Jinja2Templates(directory=str(Path("app/templates")))
 
@@ -15,12 +13,9 @@ router = APIRouter()
 
 
 @router.get("/projects", response_class=HTMLResponse)
-async def projects_list(
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def projects_list(request: Request):
     """Projects list page (FR-E2)."""
-    projects = project_service.list_projects(session)
+    projects = await project_service.list_projects()
     return templates.TemplateResponse(
         "projects_list.html",
         {"request": request, "projects": projects}
@@ -28,16 +23,12 @@ async def projects_list(
 
 
 @router.get("/projects/{project_id}", response_class=HTMLResponse)
-async def project_detail(
-    project_id: int,
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def project_detail(project_id: str, request: Request):
     """Project detail page with epics (FR-UI2)."""
-    project = project_service.get_project(session, project_id)
+    project = await project_service.get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-    epics = epic_service.list_epics_by_project(session, project_id)
+    epics = await epic_service.list_epics_by_project(project_id)
     return templates.TemplateResponse(
         "project_detail.html",
         {"request": request, "project": project, "epics": epics}
@@ -45,20 +36,15 @@ async def project_detail(
 
 
 @router.get("/projects/{project_id}/epics/{epic_id}", response_class=HTMLResponse)
-async def epic_detail(
-    project_id: int,
-    epic_id: int,
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def epic_detail(project_id: str, epic_id: str, request: Request):
     """Epic detail page with features (FR-UI3)."""
-    project = project_service.get_project(session, project_id)
+    project = await project_service.get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
-    epic = epic_service.get_epic(session, epic_id)
+    epic = await epic_service.get_epic(epic_id)
     if not epic:
         raise HTTPException(status_code=404, detail=f"Epic {epic_id} not found")
-    features = feature_service.list_features_by_epic(session, epic_id)
+    features = await feature_service.list_features_by_epic(epic_id)
     return templates.TemplateResponse(
         "epic_detail.html",
         {"request": request, "project": project, "epic": epic, "features": features}
@@ -66,18 +52,14 @@ async def epic_detail(
 
 
 @router.get("/features/{feature_id}", response_class=HTMLResponse)
-async def feature_detail(
-    feature_id: int,
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def feature_detail(feature_id: str, request: Request):
     """Feature detail page with test case definitions."""
-    feature = feature_service.get_feature(session, feature_id)
+    feature = await feature_service.get_feature(feature_id)
     if not feature:
         raise HTTPException(status_code=404, detail=f"Feature {feature_id} not found")
-    epic = epic_service.get_epic(session, feature.epic_id)
-    project = project_service.get_project(session, epic.project_id)
-    definitions = definition_service.list_definitions_by_feature(session, feature_id, active_only=False)
+    epic = await epic_service.get_epic(str(feature.epic_id))
+    project = await project_service.get_project(str(epic.project_id))
+    definitions = await definition_service.list_definitions_by_feature(feature_id, active_only=False)
     return templates.TemplateResponse(
         "feature_detail.html",
         {
@@ -91,17 +73,13 @@ async def feature_detail(
 
 
 @router.get("/features/{feature_id}/test-cases/new", response_class=HTMLResponse)
-async def new_definition_form(
-    feature_id: int,
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def new_definition_form(feature_id: str, request: Request):
     """Form for creating a new test case definition (FR-G1)."""
-    feature = feature_service.get_feature(session, feature_id)
+    feature = await feature_service.get_feature(feature_id)
     if not feature:
         raise HTTPException(status_code=404, detail=f"Feature {feature_id} not found")
-    epic = epic_service.get_epic(session, feature.epic_id)
-    project = project_service.get_project(session, epic.project_id)
+    epic = await epic_service.get_epic(str(feature.epic_id))
+    project = await project_service.get_project(str(epic.project_id))
     return templates.TemplateResponse(
         "definition_form.html",
         {
@@ -115,18 +93,14 @@ async def new_definition_form(
 
 
 @router.get("/test-cases/{definition_id}/edit", response_class=HTMLResponse)
-async def edit_definition_form(
-    definition_id: int,
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def edit_definition_form(definition_id: str, request: Request):
     """Form for editing an existing test case definition (FR-G2)."""
-    definition = definition_service.get_definition(session, definition_id)
+    definition = await definition_service.get_definition(definition_id)
     if not definition:
         raise HTTPException(status_code=404, detail=f"TestCaseDefinition {definition_id} not found")
-    feature = feature_service.get_feature(session, definition.feature_id)
-    epic = epic_service.get_epic(session, feature.epic_id)
-    project = project_service.get_project(session, epic.project_id)
+    feature = await feature_service.get_feature(str(definition.feature_id))
+    epic = await epic_service.get_epic(str(feature.epic_id))
+    project = await project_service.get_project(str(epic.project_id))
     return templates.TemplateResponse(
         "definition_form.html",
         {
@@ -140,19 +114,15 @@ async def edit_definition_form(
 
 
 @router.get("/test-cases/{definition_id}", response_class=HTMLResponse)
-async def definition_detail(
-    definition_id: int,
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def definition_detail(definition_id: str, request: Request):
     """Test case definition detail page (FR-G4)."""
-    definition = definition_service.get_definition(session, definition_id)
+    definition = await definition_service.get_definition(definition_id)
     if not definition:
         raise HTTPException(status_code=404, detail=f"TestCaseDefinition {definition_id} not found")
-    feature = feature_service.get_feature(session, definition.feature_id)
-    epic = epic_service.get_epic(session, feature.epic_id)
-    project = project_service.get_project(session, epic.project_id)
-    executions = definition.executions if definition.executions else []
+    feature = await feature_service.get_feature(str(definition.feature_id))
+    epic = await epic_service.get_epic(str(feature.epic_id))
+    project = await project_service.get_project(str(epic.project_id))
+    executions = await case_service.get_cases_by_definition(definition_id)
     return templates.TemplateResponse(
         "definition_detail.html",
         {

@@ -1,14 +1,12 @@
 """HTMX partial route handlers for dynamic UI updates (FR-D4)."""
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlmodel import Session
 from pathlib import Path
 
 from typing import Optional
 
-from app.database.session import get_session
 from app.services import run_service, case_service, stats_service
 
 # Setup Jinja2 templates
@@ -18,10 +16,7 @@ router = APIRouter()
 
 
 @router.get("/runs", response_class=HTMLResponse)
-async def get_runs_partial(
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def get_runs_partial(request: Request):
     """HTMX partial for auto-refreshing runs list on dashboard.
 
     This endpoint is called every 5 seconds by HTMX polling to update
@@ -29,12 +24,11 @@ async def get_runs_partial(
 
     Args:
         request: FastAPI request object.
-        session: Database session.
 
     Returns:
         HTMLResponse: Rendered runs list partial.
     """
-    runs = run_service.list_runs(session, limit=50)
+    runs = await stats_service.list_runs_with_stats(limit=50)
 
     return templates.TemplateResponse(
         "partials/run_list.html",
@@ -47,10 +41,9 @@ async def get_runs_partial(
 
 @router.get("/runs/{run_id}/content", response_class=HTMLResponse)
 async def get_run_detail_content(
-    run_id: int,
+    run_id: str,
     request: Request,
-    filter: Optional[str] = None,
-    session: Session = Depends(get_session)
+    filter: Optional[str] = None
 ):
     """HTMX partial for auto-refreshing run detail content (FR-I1, FR-I2).
 
@@ -63,17 +56,16 @@ async def get_run_detail_content(
         run_id: ID of the test run.
         request: FastAPI request object.
         filter: Optional status filter ("failed" to show only failed tests).
-        session: Database session.
 
     Returns:
         HTMLResponse: Rendered run detail content partial.
     """
-    run = run_service.get_run(session, run_id)
+    run = await run_service.get_run(run_id)
     if not run:
         raise HTTPException(status_code=404, detail=f"Test run {run_id} not found")
 
-    cases = case_service.get_cases_by_run(session, run_id, status_filter=filter)
-    stats = stats_service.calculate_run_statistics(session, run_id)
+    cases = await case_service.get_cases_by_run(run_id, status_filter=filter)
+    stats = await stats_service.calculate_run_statistics(run_id)
 
     return templates.TemplateResponse(
         "partials/run_detail_content.html",
@@ -88,11 +80,7 @@ async def get_run_detail_content(
 
 
 @router.get("/cases/{case_id}/details", response_class=HTMLResponse)
-async def get_case_details(
-    case_id: int,
-    request: Request,
-    session: Session = Depends(get_session)
-):
+async def get_case_details(case_id: str, request: Request):
     """HTMX partial for expanding test case details (FR-D3).
 
     This endpoint loads the full details of a test case including:
@@ -103,7 +91,6 @@ async def get_case_details(
     Args:
         case_id: ID of the test case.
         request: FastAPI request object.
-        session: Database session.
 
     Returns:
         HTMLResponse: Rendered test case details partial.
@@ -112,7 +99,7 @@ async def get_case_details(
         HTTPException: If case not found (404).
     """
     # Get test case with all steps loaded
-    case = case_service.get_case_with_steps(session, case_id)
+    case = await case_service.get_case_with_steps(case_id)
 
     if not case:
         raise HTTPException(status_code=404, detail=f"Test case {case_id} not found")

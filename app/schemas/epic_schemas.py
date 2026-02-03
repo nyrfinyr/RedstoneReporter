@@ -21,8 +21,8 @@ class UpdateEpicRequest(BaseModel):
 
 class EpicResponse(BaseModel):
     """Response model for epic information."""
-    id: int
-    project_id: int
+    id: str
+    project_id: str
     name: str
     description: Optional[str] = None
     external_ref: Optional[str] = None
@@ -30,6 +30,3 @@ class EpicResponse(BaseModel):
     feature_count: int = 0
     test_definition_count: int = 0
     active_test_definition_count: int = 0
-
-    class Config:
-        from_attributes = True

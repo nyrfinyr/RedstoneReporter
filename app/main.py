@@ -1,5 +1,6 @@
 """FastAPI application initialization and configuration."""
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -9,7 +10,7 @@ import logging
 from pathlib import Path
 
 from app.config import settings
-from app.database import create_db_and_tables, run_migrations
+from app.database import connect_to_mongo, close_mongo_connection
 from app.api import runs
 from app.api import projects as projects_api
 from app.api import features as features_api
@@ -31,11 +32,34 @@ from app.services.exceptions import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan handler: startup and shutdown."""
+    # --- Startup ---
+    logger.info("Starting RedstoneReporter...")
+
+    await connect_to_mongo()
+    logger.info("MongoDB connected and Beanie initialized")
+
+    # Verify screenshot directory exists
+    settings.SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    if settings.SCREENSHOT_DIR.exists():
+        logger.info(f"Screenshot directory: {settings.SCREENSHOT_DIR}")
+
+    yield
+
+    # --- Shutdown ---
+    await close_mongo_connection()
+    logger.info("MongoDB connection closed")
+
+
 # Create FastAPI application
 app = FastAPI(
     title="RedstoneReporter",
     description="AI Agent Test Reporter - Custom Monocart Alternative",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
@@ -179,26 +203,6 @@ async def request_validation_error_handler(request: Request, exc: RequestValidat
             "error_code": "REQUEST_VALIDATION_ERROR"
         }
     )
-
-
-@app.on_event("startup")
-async def on_startup():
-    """Initialize database and perform startup checks."""
-    logger.info("Starting RedstoneReporter...")
-
-    # Create database tables if they don't exist (NFR-04)
-    create_db_and_tables()
-    logger.info("Database initialized successfully")
-
-    # Run migrations for adding new columns to existing tables (NFR-07)
-    run_migrations()
-    logger.info("Database migrations completed")
-
-    # Verify screenshot directory exists
-    if settings.SCREENSHOT_DIR.exists():
-        logger.info(f"Screenshot directory: {settings.SCREENSHOT_DIR}")
-    else:
-        logger.warning(f"Screenshot directory not found: {settings.SCREENSHOT_DIR}")
 
 
 @app.get("/health")

@@ -1,0 +1,13 @@
+services:
+  mongo-mcp:
+    image: mongo-mcp:latest
+    ports:
+      - "3001:8080"
+    environment:
+      MONGO_URI: mongodb://localhost:27111
+      MONGO_DB: redstone_reporter
+
+  playwright-mcp:
+    image: playwright-mcp:latest
+    ports:
+      - "3003:8080"

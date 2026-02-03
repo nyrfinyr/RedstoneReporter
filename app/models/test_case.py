@@ -1,67 +1,40 @@
-"""TestCase model - represents a single test case execution."""
+"""TestCase document model with embedded TestStep."""
 
-from sqlmodel import SQLModel, Field, Relationship
+from beanie import Document, Indexed, PydanticObjectId
+from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.models.test_run import TestRun
-    from app.models.test_step import TestStep
-    from app.models.test_case_definition import TestCaseDefinition
+from typing import Optional, List
 
 
-class TestCase(SQLModel, table=True):
-    """Test Case model (FR-B1, FR-B3, FR-B4, FR-B5).
+class TestStepEmbed(BaseModel):
+    """Embedded test step (no separate collection)."""
+    description: str
+    status: str
+    order_index: int
 
-    Represents a single test case result with optional screenshot.
-    """
-    __tablename__ = "test_cases"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+class TestCase(Document):
+    """TestCase document (FR-B1)."""
+    run_id: Indexed(PydanticObjectId)
+    name: Indexed(str)
+    status: str
+    duration: Optional[int] = None
+    error_message: Optional[str] = None
+    error_stack: Optional[str] = None
+    screenshot_path: Optional[str] = None
+    created_at: datetime = datetime.utcnow()
+    definition_id: Optional[PydanticObjectId] = None
+    steps: List[TestStepEmbed] = []
 
-    # Foreign key to TestRun
-    run_id: int = Field(foreign_key="test_runs.id", index=True)
-
-    # Test case details
-    name: str = Field(max_length=255, index=True)
-    status: str = Field(max_length=50)  # TestStatus enum values
-    duration: Optional[int] = None  # Duration in milliseconds
-
-    # Error details (FR-B4)
-    error_message: Optional[str] = Field(default=None, max_length=1000)
-    error_stack: Optional[str] = Field(default=None)  # SQLModel maps Optional[str] to TEXT automatically
-
-    # Screenshot path (FR-B5 - relative path, not full path)
-    screenshot_path: Optional[str] = Field(default=None, max_length=500)
-
-    # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    # Optional link to test case definition (FR-H4)
-    definition_id: Optional[int] = Field(default=None, foreign_key="test_case_definitions.id", index=True)
-
-    # Relationships
-    run: "TestRun" = Relationship(back_populates="cases")
-    steps: List["TestStep"] = Relationship(
-        back_populates="case",
-        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
-    )
-    definition: Optional["TestCaseDefinition"] = Relationship(back_populates="executions")
+    class Settings:
+        name = "test_cases"
 
     @property
     def has_screenshot(self) -> bool:
-        """Check if test case has an associated screenshot.
-
-        Returns:
-            bool: True if screenshot_path is set.
-        """
+        """Check if test case has an associated screenshot."""
         return bool(self.screenshot_path)
 
     @property
     def step_count(self) -> int:
-        """Total number of steps in this test case.
-
-        Returns:
-            int: Count of all steps.
-        """
-        return len(self.steps) if self.steps else 0
+        """Total number of steps in this test case."""
+        return len(self.steps)

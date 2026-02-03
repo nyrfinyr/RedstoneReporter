@@ -1,12 +1,10 @@
 """API endpoints for test run management."""
 
-from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException
-from sqlmodel import Session
+from fastapi import APIRouter, Form, File, UploadFile, HTTPException
 from typing import Optional
 import json
 import logging
 
-from app.database.session import get_session
 from app.services import run_service, case_service, screenshot_service, stats_service
 from app.schemas.run_schemas import StartRunRequest, RunResponse, FinishRunResponse
 from app.schemas.case_schemas import (
@@ -20,16 +18,30 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+async def _build_run_response(run) -> RunResponse:
+    """Build RunResponse with computed counts."""
+    stats = await stats_service.calculate_run_statistics(str(run.id))
+    return RunResponse(
+        id=str(run.id),
+        name=run.name,
+        status=run.status,
+        start_time=run.start_time,
+        end_time=run.end_time,
+        duration=run.duration,
+        project_id=str(run.project_id) if run.project_id else None,
+        test_count=stats["total_tests"],
+        passed_count=stats["passed"],
+        failed_count=stats["failed"],
+        skipped_count=stats["skipped"]
+    )
+
+
 @router.post("/start", response_model=RunResponse, status_code=201)
-async def start_run(
-    request: StartRunRequest,
-    session: Session = Depends(get_session)
-):
+async def start_run(request: StartRunRequest):
     """Create a new test run (FR-A1).
 
     Args:
         request: Start run request with name.
-        session: Database session.
 
     Returns:
         RunResponse: Created test run information.
@@ -40,31 +52,30 @@ async def start_run(
     """
     logger.info(f"Creating new test run: {request.name}")
 
-    run = run_service.create_run(session, request.name, project_id=request.project_id)
+    run = await run_service.create_run(request.name, project_id=request.project_id)
 
     logger.info(f"Test run created with ID: {run.id}")
 
     return RunResponse(
-        id=run.id,
+        id=str(run.id),
         name=run.name,
         status=run.status,
         start_time=run.start_time,
         end_time=run.end_time,
         duration=run.duration,
-        project_id=run.project_id,
-        test_count=run.test_count,
-        passed_count=run.passed_count,
-        failed_count=run.failed_count,
-        skipped_count=run.skipped_count
+        project_id=str(run.project_id) if run.project_id else None,
+        test_count=0,
+        passed_count=0,
+        failed_count=0,
+        skipped_count=0
     )
 
 
 @router.post("/{run_id}/report", response_model=ReportTestCaseResponse, status_code=201)
 async def report_test_case(
-    run_id: int,
+    run_id: str,
     data: str = Form(..., description="JSON string with test case data"),
-    screenshot: Optional[UploadFile] = File(None, description="Optional screenshot file"),
-    session: Session = Depends(get_session)
+    screenshot: Optional[UploadFile] = File(None, description="Optional screenshot file")
 ):
     """Report a single test case with optional screenshot (FR-B1, FR-B2, FR-B3, FR-B4, FR-B5).
 
@@ -76,18 +87,12 @@ async def report_test_case(
         run_id: ID of the test run.
         data: JSON string with test case data.
         screenshot: Optional screenshot file.
-        session: Database session.
 
     Returns:
         ReportTestCaseResponse: Success status and case ID.
-
-    Example:
-        curl -X POST http://localhost:8000/api/runs/1/report \\
-          -F 'data={"name":"Login Test","status":"passed","duration":1500,"steps":[...]}' \\
-          -F 'screenshot=@screenshot.png'
     """
     # Verify run exists
-    run = run_service.get_run(session, run_id)
+    run = await run_service.get_run(run_id)
     if not run:
         raise HTTPException(status_code=404, detail=f"Test run {run_id} not found")
 
@@ -137,8 +142,7 @@ async def report_test_case(
 
     # Create test case with steps (FR-B3)
     try:
-        test_case = case_service.create_test_case(
-            session=session,
+        test_case = await case_service.create_test_case(
             run_id=run_id,
             case_data=validated_data.model_dump(),
             screenshot_path=screenshot_path
@@ -153,81 +157,63 @@ async def report_test_case(
 
     return ReportTestCaseResponse(
         success=True,
-        case_id=test_case.id,
+        case_id=str(test_case.id),
         message=f"Test case '{test_case.name}' reported successfully"
     )
 
 
 @router.get("/{run_id}/checkpoint", response_model=CheckpointResponse)
-async def get_checkpoint(
-    run_id: int,
-    session: Session = Depends(get_session)
-):
+async def get_checkpoint(run_id: str):
     """Get list of completed test names for recovery (FR-C1, FR-C2).
-
-    This endpoint allows the AI agent to query which test cases have
-    already been completed, enabling crash recovery.
 
     Args:
         run_id: ID of the test run.
-        session: Database session.
 
     Returns:
         CheckpointResponse: List of completed test case names.
-
-    Example:
-        GET /api/runs/1/checkpoint
-        Returns: {"run_id": 1, "completed_test_names": ["Login Test", "Payment Test"], ...}
     """
     # Verify run exists
-    run = run_service.get_run(session, run_id)
+    run = await run_service.get_run(run_id)
     if not run:
         raise HTTPException(status_code=404, detail=f"Test run {run_id} not found")
 
     logger.info(f"Checkpoint query for run {run_id}")
 
-    completed_names = case_service.get_completed_case_names(session, run_id)
+    completed_names = await case_service.get_completed_case_names(run_id)
 
     logger.info(f"Found {len(completed_names)} completed tests")
 
     return CheckpointResponse(
-        run_id=run_id,
+        run_id=str(run_id),
         completed_test_names=completed_names,
         total_completed=len(completed_names)
     )
 
 
 @router.post("/{run_id}/finish", response_model=FinishRunResponse)
-async def finish_run(
-    run_id: int,
-    session: Session = Depends(get_session)
-):
+async def finish_run(run_id: str):
     """Mark run as completed and calculate final statistics (FR-A3).
 
     Args:
         run_id: ID of the test run.
-        session: Database session.
 
     Returns:
         FinishRunResponse: Updated run information with statistics.
-
-    Example:
-        POST /api/runs/1/finish
     """
     logger.info(f"Finishing test run {run_id}")
 
     try:
-        run = run_service.finish_run(session, run_id)
+        run = await run_service.finish_run(run_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
     # Calculate final statistics
-    stats = stats_service.calculate_run_statistics(session, run_id)
+    stats = await stats_service.calculate_run_statistics(run_id)
 
     logger.info(f"Test run {run_id} completed: {stats['passed']}/{stats['total_tests']} passed")
 
     return FinishRunResponse(
-        id=run.id,
+        id=str(run.id),
         name=run.name,
         status=run.status,
         start_time=run.start_time,
@@ -242,33 +228,17 @@ async def finish_run(
 
 
 @router.get("/{run_id}", response_model=RunResponse)
-async def get_run(
-    run_id: int,
-    session: Session = Depends(get_session)
-):
+async def get_run(run_id: str):
     """Get test run information by ID.
 
     Args:
         run_id: ID of the test run.
-        session: Database session.
 
     Returns:
         RunResponse: Test run information.
     """
-    run = run_service.get_run(session, run_id)
+    run = await run_service.get_run(run_id)
     if not run:
         raise HTTPException(status_code=404, detail=f"Test run {run_id} not found")
 
-    return RunResponse(
-        id=run.id,
-        name=run.name,
-        status=run.status,
-        start_time=run.start_time,
-        end_time=run.end_time,
-        duration=run.duration,
-        project_id=run.project_id,
-        test_count=run.test_count,
-        passed_count=run.passed_count,
-        failed_count=run.failed_count,
-        skipped_count=run.skipped_count
-    )
+    return await _build_run_response(run)

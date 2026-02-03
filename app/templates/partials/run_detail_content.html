@@ -130,7 +130,7 @@
                         class="ml-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                         hx-get="/api/htmx/cases/{{ case.id }}/details" hx-target="#case-details-{{ case.id }}"
                         hx-swap="innerHTML" hx-trigger="click[!this.dataset.loaded]"
-                        onclick="toggleDetails({{ case.id }})">
+                        onclick="toggleDetails('{{ case.id }}')">
                         <svg id="icon-{{ case.id }}" class="h-5 w-5 transition-transform" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">

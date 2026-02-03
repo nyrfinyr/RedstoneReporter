@@ -1,6 +1,5 @@
 """Database configuration and setup."""
 
-from app.database.engine import engine, create_db_and_tables, run_migrations
-from app.database.session import get_session
+from app.database.connection import connect_to_mongo, close_mongo_connection
 
-__all__ = ["engine", "create_db_and_tables", "run_migrations", "get_session"]
+__all__ = ["connect_to_mongo", "close_mongo_connection"]

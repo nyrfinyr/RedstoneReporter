@@ -1,4 +1,4 @@
-"""SQLModel database models for RedstoneReporter."""
+"""Beanie document models for RedstoneReporter."""
 
 from enum import Enum
 
@@ -25,15 +25,21 @@ class Priority(str, Enum):
     LOW = "low"
 
 
-# Import models to ensure they're registered with SQLModel
-# Order matters: parent models first to avoid FK resolution issues
 from app.models.project import Project
 from app.models.epic import Epic
 from app.models.feature import Feature
 from app.models.test_case_definition import TestCaseDefinition
 from app.models.test_run import TestRun
-from app.models.test_case import TestCase
-from app.models.test_step import TestStep
+from app.models.test_case import TestCase, TestStepEmbed
+
+ALL_DOCUMENT_MODELS = [
+    Project,
+    Epic,
+    Feature,
+    TestCaseDefinition,
+    TestRun,
+    TestCase,
+]
 
 __all__ = [
     "RunStatus",
@@ -45,5 +51,6 @@ __all__ = [
     "TestCaseDefinition",
     "TestRun",
     "TestCase",
-    "TestStep",
+    "TestStepEmbed",
+    "ALL_DOCUMENT_MODELS",
 ]

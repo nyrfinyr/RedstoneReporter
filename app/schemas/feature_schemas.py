@@ -19,13 +19,10 @@ class UpdateFeatureRequest(BaseModel):
 
 class FeatureResponse(BaseModel):
     """Response model for feature information."""
-    id: int
-    epic_id: int
+    id: str
+    epic_id: str
     name: str
     description: Optional[str] = None
     created_at: datetime
     test_definition_count: int = 0
     active_test_definition_count: int = 0
-
-    class Config:
-        from_attributes = True

@@ -1,76 +1,66 @@
-"""Service layer for statistics calculations."""
+"""Service layer for statistics calculations - async with Beanie."""
 
-from sqlmodel import Session, select, func
-from typing import Dict, Any
+from typing import Dict, Any, List
+from beanie import PydanticObjectId
+from dataclasses import dataclass
 
-from app.models import TestRun, TestCase
+from app.models import TestRun, TestCase, Project
 
 
-def calculate_run_statistics(session: Session, run_id: int) -> Dict[str, Any]:
-    """Calculate aggregated statistics for a test run.
+@dataclass
+class RunWithStats:
+    """TestRun with computed statistics for display."""
+    id: str
+    name: str
+    status: str
+    start_time: Any
+    end_time: Any
+    duration: int
+    project_id: str
+    project: Project
+    test_count: int
+    passed_count: int
+    failed_count: int
+    skipped_count: int
 
-    Args:
-        session: Database session.
-        run_id: ID of the test run.
 
-    Returns:
-        Dict[str, Any]: Dictionary containing statistics:
-            - total_tests: Total number of test cases
-            - passed: Number of passed tests
-            - failed: Number of failed tests
-            - skipped: Number of skipped tests
-            - success_rate: Percentage of passed tests (0-100)
-            - avg_duration: Average test duration in milliseconds
-    """
-    # Get test run
-    run = session.get(TestRun, run_id)
+async def calculate_run_statistics(run_id: str) -> Dict[str, Any]:
+    """Calculate aggregated statistics for a test run."""
+    run = await TestRun.get(PydanticObjectId(run_id))
     if not run:
         return {
-            "total_tests": 0,
-            "passed": 0,
-            "failed": 0,
-            "skipped": 0,
-            "success_rate": 0.0,
-            "avg_duration": 0
+            "total_tests": 0, "passed": 0, "failed": 0, "skipped": 0,
+            "success_rate": 0.0, "avg_duration": 0
         }
 
-    # Count by status
-    statement = (
-        select(
-            TestCase.status,
-            func.count(TestCase.id).label("count")
-        )
-        .where(TestCase.run_id == run_id)
-        .group_by(TestCase.status)
-    )
+    oid = PydanticObjectId(run_id)
 
-    results = session.exec(statement).all()
+    pipeline = [
+        {"$match": {"run_id": oid}},
+        {"$group": {
+            "_id": "$status",
+            "count": {"$sum": 1},
+            "avg_duration": {"$avg": "$duration"}
+        }}
+    ]
+    collection = TestCase.get_pymongo_collection()
+    results = await collection.aggregate(pipeline).to_list(length=None)
 
-    # Build counts dictionary
-    counts = {
-        "passed": 0,
-        "failed": 0,
-        "skipped": 0
-    }
+    counts = {"passed": 0, "failed": 0, "skipped": 0}
+    total_duration_sum = 0
+    duration_count = 0
 
-    for status, count in results:
+    for r in results:
+        status = r["_id"]
         if status in counts:
-            counts[status] = count
+            counts[status] = r["count"]
+        if r.get("avg_duration") is not None:
+            total_duration_sum += r["avg_duration"] * r["count"]
+            duration_count += r["count"]
 
     total_tests = sum(counts.values())
-
-    # Calculate success rate
-    success_rate = 0.0
-    if total_tests > 0:
-        success_rate = (counts["passed"] / total_tests) * 100
-
-    # Calculate average duration
-    avg_duration_statement = (
-        select(func.avg(TestCase.duration))
-        .where(TestCase.run_id == run_id)
-        .where(TestCase.duration.isnot(None))
-    )
-    avg_duration = session.exec(avg_duration_statement).first() or 0
+    success_rate = (counts["passed"] / total_tests * 100) if total_tests > 0 else 0.0
+    avg_duration = int(total_duration_sum / duration_count) if duration_count > 0 else 0
 
     return {
         "total_tests": total_tests,
@@ -78,50 +68,69 @@ def calculate_run_statistics(session: Session, run_id: int) -> Dict[str, Any]:
         "failed": counts["failed"],
         "skipped": counts["skipped"],
         "success_rate": round(success_rate, 2),
-        "avg_duration": int(avg_duration) if avg_duration else 0
+        "avg_duration": avg_duration
     }
 
 
-def calculate_global_statistics(session: Session) -> Dict[str, Any]:
-    """Calculate global statistics across all test runs.
+async def list_runs_with_stats(limit: int = 50) -> List[RunWithStats]:
+    """List test runs with computed statistics for dashboard display."""
+    runs = await TestRun.find_all().sort("-start_time").limit(limit).to_list()
+    if not runs:
+        return []
 
-    Args:
-        session: Database session.
+    # Load projects for runs that have project_id
+    project_ids = [run.project_id for run in runs if run.project_id]
+    projects_map: Dict[str, Project] = {}
+    if project_ids:
+        projects = await Project.find({"_id": {"$in": project_ids}}).to_list()
+        projects_map = {str(p.id): p for p in projects}
 
-    Returns:
-        Dict[str, Any]: Dictionary containing global statistics.
-    """
-    # Total runs
-    total_runs = session.exec(select(func.count(TestRun.id))).first() or 0
+    # Build enriched run objects with stats calculated per-run
+    enriched_runs = []
+    for run in runs:
+        rid = str(run.id)
+        project = projects_map.get(str(run.project_id)) if run.project_id else None
 
-    # Total test cases
-    total_cases = session.exec(select(func.count(TestCase.id))).first() or 0
+        # Count test cases by status for this run
+        passed = await TestCase.find({"run_id": run.id, "status": "passed"}).count()
+        failed = await TestCase.find({"run_id": run.id, "status": "failed"}).count()
+        skipped = await TestCase.find({"run_id": run.id, "status": "skipped"}).count()
 
-    # Status counts
-    statement = (
-        select(
-            TestCase.status,
-            func.count(TestCase.id).label("count")
-        )
-        .group_by(TestCase.status)
-    )
+        enriched_runs.append(RunWithStats(
+            id=rid,
+            name=run.name,
+            status=run.status,
+            start_time=run.start_time,
+            end_time=run.end_time,
+            duration=run.duration or 0,
+            project_id=str(run.project_id) if run.project_id else None,
+            project=project,
+            test_count=passed + failed + skipped,
+            passed_count=passed,
+            failed_count=failed,
+            skipped_count=skipped
+        ))
 
-    results = session.exec(statement).all()
+    return enriched_runs
 
-    counts = {
-        "passed": 0,
-        "failed": 0,
-        "skipped": 0
-    }
 
-    for status, count in results:
-        if status in counts:
-            counts[status] = count
+async def calculate_global_statistics() -> Dict[str, Any]:
+    """Calculate global statistics across all test runs."""
+    total_runs = await TestRun.count()
+    total_cases = await TestCase.count()
 
-    # Success rate
-    success_rate = 0.0
-    if total_cases > 0:
-        success_rate = (counts["passed"] / total_cases) * 100
+    pipeline = [
+        {"$group": {"_id": "$status", "count": {"$sum": 1}}}
+    ]
+    collection = TestCase.get_pymongo_collection()
+    results = await collection.aggregate(pipeline).to_list(length=None)
+
+    counts = {"passed": 0, "failed": 0, "skipped": 0}
+    for r in results:
+        if r["_id"] in counts:
+            counts[r["_id"]] = r["count"]
+
+    success_rate = (counts["passed"] / total_cases * 100) if total_cases > 0 else 0.0
 
     return {
         "total_runs": total_runs,

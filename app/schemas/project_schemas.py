@@ -19,13 +19,10 @@ class UpdateProjectRequest(BaseModel):
 
 class ProjectResponse(BaseModel):
     """Response model for project information."""
-    id: int
+    id: str
     name: str
     description: Optional[str] = None
     created_at: datetime
     epic_count: int = 0
     test_definition_count: int = 0
     active_test_definition_count: int = 0
-
-    class Config:
-        from_attributes = True

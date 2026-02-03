@@ -1,19 +1,18 @@
-"""Service layer for TestCaseDefinition operations."""
+"""Service layer for TestCaseDefinition operations - async with Beanie."""
 
-from sqlmodel import Session, select
 from datetime import datetime
 from typing import Optional, List
+from beanie import PydanticObjectId
 import logging
 
-from app.models import TestCaseDefinition, Feature, Epic
+from app.models import TestCaseDefinition, Feature, Epic, TestCase
 from app.services.exceptions import TestCaseDefinitionNotFoundError
 
 logger = logging.getLogger(__name__)
 
 
-def create_definition(
-    session: Session,
-    feature_id: int,
+async def create_definition(
+    feature_id: str,
     title: str,
     steps: List[dict],
     description: Optional[str] = None,
@@ -21,24 +20,10 @@ def create_definition(
     expected_result: Optional[str] = None,
     priority: str = "medium"
 ) -> TestCaseDefinition:
-    """Create a new test case definition (FR-G1).
-
-    Args:
-        session: Database session.
-        feature_id: ID of the parent feature.
-        title: Test case title.
-        steps: List of step dicts [{"description": "...", "order": 0}, ...].
-        description: Optional description.
-        preconditions: Optional preconditions.
-        expected_result: Optional expected result.
-        priority: Priority level (critical/high/medium/low).
-
-    Returns:
-        TestCaseDefinition: The created definition with assigned ID.
-    """
+    """Create a new test case definition (FR-G1)."""
     now = datetime.utcnow()
     definition = TestCaseDefinition(
-        feature_id=feature_id,
+        feature_id=PydanticObjectId(feature_id),
         title=title,
         steps=steps,
         description=description,
@@ -48,100 +33,57 @@ def create_definition(
         created_at=now,
         updated_at=now
     )
-    session.add(definition)
-    session.commit()
-    session.refresh(definition)
+    await definition.insert()
     logger.info(f"TestCaseDefinition created with ID: {definition.id} in feature {feature_id}")
     return definition
 
 
-def get_definition(session: Session, definition_id: int) -> Optional[TestCaseDefinition]:
-    """Get a test case definition by ID.
-
-    Args:
-        session: Database session.
-        definition_id: ID of the definition.
-
-    Returns:
-        Optional[TestCaseDefinition]: The definition if found, None otherwise.
-    """
-    return session.get(TestCaseDefinition, definition_id)
+async def get_definition(definition_id: str) -> Optional[TestCaseDefinition]:
+    """Get a test case definition by ID."""
+    return await TestCaseDefinition.get(PydanticObjectId(definition_id))
 
 
-def list_definitions_by_feature(
-    session: Session,
-    feature_id: int,
+async def list_definitions_by_feature(
+    feature_id: str,
     active_only: bool = True
 ) -> List[TestCaseDefinition]:
-    """List test case definitions for a feature.
-
-    Args:
-        session: Database session.
-        feature_id: ID of the parent feature.
-        active_only: If True, only return active definitions.
-
-    Returns:
-        List[TestCaseDefinition]: List of definitions.
-    """
-    statement = select(TestCaseDefinition).where(TestCaseDefinition.feature_id == feature_id)
+    """List test case definitions for a feature."""
+    query = {"feature_id": PydanticObjectId(feature_id)}
     if active_only:
-        statement = statement.where(TestCaseDefinition.is_active == True)
-    statement = statement.order_by(TestCaseDefinition.created_at.desc())
-    return list(session.exec(statement))
+        query["is_active"] = True
+    return await TestCaseDefinition.find(query).sort("-created_at").to_list()
 
 
-def list_definitions_by_project(
-    session: Session,
-    project_id: int,
-    epic_id: Optional[int] = None,
-    feature_id: Optional[int] = None,
+async def list_definitions_by_project(
+    project_id: str,
+    epic_id: Optional[str] = None,
+    feature_id: Optional[str] = None,
     priority: Optional[str] = None
 ) -> List[TestCaseDefinition]:
-    """List active definitions across all features of a project (FR-H1, FR-H2).
-
-    Args:
-        session: Database session.
-        project_id: ID of the project.
-        epic_id: Optional filter by specific epic.
-        feature_id: Optional filter by specific feature.
-        priority: Optional comma-separated priority filter (e.g. "critical,high").
-
-    Returns:
-        List[TestCaseDefinition]: List of active definitions.
-    """
-    statement = (
-        select(TestCaseDefinition)
-        .join(Feature)
-        .join(Epic)
-        .where(Epic.project_id == project_id)
-        .where(TestCaseDefinition.is_active == True)
-    )
-    if epic_id:
-        statement = statement.where(Feature.epic_id == epic_id)
+    """List active definitions across all features of a project (FR-H1, FR-H2)."""
     if feature_id:
-        statement = statement.where(TestCaseDefinition.feature_id == feature_id)
+        query_filter = {"feature_id": PydanticObjectId(feature_id), "is_active": True}
+    elif epic_id:
+        features = await Feature.find(Feature.epic_id == PydanticObjectId(epic_id)).to_list()
+        fids = [f.id for f in features]
+        query_filter = {"feature_id": {"$in": fids}, "is_active": True}
+    else:
+        epics = await Epic.find(Epic.project_id == PydanticObjectId(project_id)).to_list()
+        eids = [e.id for e in epics]
+        features = await Feature.find({"epic_id": {"$in": eids}}).to_list()
+        fids = [f.id for f in features]
+        query_filter = {"feature_id": {"$in": fids}, "is_active": True}
+
     if priority:
         priorities = [p.strip() for p in priority.split(",")]
-        statement = statement.where(TestCaseDefinition.priority.in_(priorities))
-    statement = statement.order_by(TestCaseDefinition.created_at.desc())
-    return list(session.exec(statement))
+        query_filter["priority"] = {"$in": priorities}
+
+    return await TestCaseDefinition.find(query_filter).sort("-created_at").to_list()
 
 
-def update_definition(session: Session, definition_id: int, **kwargs) -> TestCaseDefinition:
-    """Update a test case definition's fields (FR-G2).
-
-    Args:
-        session: Database session.
-        definition_id: ID of the definition to update.
-        **kwargs: Fields to update.
-
-    Returns:
-        TestCaseDefinition: The updated definition.
-
-    Raises:
-        TestCaseDefinitionNotFoundError: If definition not found.
-    """
-    definition = session.get(TestCaseDefinition, definition_id)
+async def update_definition(definition_id: str, **kwargs) -> TestCaseDefinition:
+    """Update a test case definition's fields (FR-G2)."""
+    definition = await TestCaseDefinition.get(PydanticObjectId(definition_id))
     if not definition:
         raise TestCaseDefinitionNotFoundError(definition_id)
 
@@ -150,34 +92,36 @@ def update_definition(session: Session, definition_id: int, **kwargs) -> TestCas
             setattr(definition, key, value)
 
     definition.updated_at = datetime.utcnow()
-    session.add(definition)
-    session.commit()
-    session.refresh(definition)
+    await definition.save()
     logger.info(f"TestCaseDefinition {definition_id} updated")
     return definition
 
 
-def soft_delete_definition(session: Session, definition_id: int) -> TestCaseDefinition:
-    """Soft delete a test case definition (FR-G2): sets is_active=False.
-
-    Args:
-        session: Database session.
-        definition_id: ID of the definition to deactivate.
-
-    Returns:
-        TestCaseDefinition: The deactivated definition.
-
-    Raises:
-        TestCaseDefinitionNotFoundError: If definition not found.
-    """
-    definition = session.get(TestCaseDefinition, definition_id)
+async def soft_delete_definition(definition_id: str) -> TestCaseDefinition:
+    """Soft delete a test case definition: sets is_active=False."""
+    definition = await TestCaseDefinition.get(PydanticObjectId(definition_id))
     if not definition:
         raise TestCaseDefinitionNotFoundError(definition_id)
 
     definition.is_active = False
     definition.updated_at = datetime.utcnow()
-    session.add(definition)
-    session.commit()
-    session.refresh(definition)
+    await definition.save()
     logger.info(f"TestCaseDefinition {definition_id} soft-deleted")
     return definition
+
+
+async def hard_delete_definition(definition_id: str) -> None:
+    """Permanently delete a test case definition from the database."""
+    definition = await TestCaseDefinition.get(PydanticObjectId(definition_id))
+    if not definition:
+        raise TestCaseDefinitionNotFoundError(definition_id)
+
+    await definition.delete()
+    logger.info(f"TestCaseDefinition {definition_id} permanently deleted")
+
+
+async def get_execution_count(definition_id: str) -> int:
+    """Count test case executions linked to a definition."""
+    return await TestCase.find(
+        TestCase.definition_id == PydanticObjectId(definition_id)
+    ).count()
