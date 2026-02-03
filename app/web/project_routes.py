@@ -18,7 +18,11 @@ async def projects_list(request: Request):
     projects = await project_service.list_projects()
     return templates.TemplateResponse(
         "projects_list.html",
-        {"request": request, "projects": projects}
+        {
+            "request": request,
+            "projects": projects,
+            "active_page": "projects"
+        }
     )
 
 
@@ -31,7 +35,13 @@ async def project_detail(project_id: str, request: Request):
     epics = await epic_service.list_epics_by_project(project_id)
     return templates.TemplateResponse(
         "project_detail.html",
-        {"request": request, "project": project, "epics": epics}
+        {
+            "request": request,
+            "project": project,
+            "epics": epics,
+            "active_page": "project_detail",
+            "nav_project": project
+        }
     )
 
 
@@ -47,7 +57,15 @@ async def epic_detail(project_id: str, epic_id: str, request: Request):
     features = await feature_service.list_features_by_epic(epic_id)
     return templates.TemplateResponse(
         "epic_detail.html",
-        {"request": request, "project": project, "epic": epic, "features": features}
+        {
+            "request": request,
+            "project": project,
+            "epic": epic,
+            "features": features,
+            "active_page": "epic_detail",
+            "nav_project": project,
+            "nav_epic": epic
+        }
     )
 
 
@@ -67,7 +85,11 @@ async def feature_detail(feature_id: str, request: Request):
             "project": project,
             "epic": epic,
             "feature": feature,
-            "definitions": definitions
+            "definitions": definitions,
+            "active_page": "feature_detail",
+            "nav_project": project,
+            "nav_epic": epic,
+            "nav_feature": feature
         }
     )
 
@@ -87,7 +109,11 @@ async def new_definition_form(feature_id: str, request: Request):
             "project": project,
             "epic": epic,
             "feature": feature,
-            "definition": None
+            "definition": None,
+            "active_page": "definition_form",
+            "nav_project": project,
+            "nav_epic": epic,
+            "nav_feature": feature
         }
     )
 
@@ -108,7 +134,12 @@ async def edit_definition_form(definition_id: str, request: Request):
             "project": project,
             "epic": epic,
             "feature": feature,
-            "definition": definition
+            "definition": definition,
+            "active_page": "definition_form",
+            "nav_project": project,
+            "nav_epic": epic,
+            "nav_feature": feature,
+            "nav_definition": definition
         }
     )
 
@@ -131,6 +162,11 @@ async def definition_detail(definition_id: str, request: Request):
             "epic": epic,
             "feature": feature,
             "definition": definition,
-            "executions": executions
+            "executions": executions,
+            "active_page": "definition_detail",
+            "nav_project": project,
+            "nav_epic": epic,
+            "nav_feature": feature,
+            "nav_definition": definition
         }
     )

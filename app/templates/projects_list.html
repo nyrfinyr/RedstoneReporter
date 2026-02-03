@@ -1,101 +1,90 @@
 {% extends "base.html" %}
 
-{% block title %}Progetti - RedstoneReporter{% endblock %}
+{% block title %}Projects - RedstoneReporter{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Progetti</h1>
-            <p class="mt-1 text-sm text-gray-500">Gestisci i tuoi progetti e i test case associati</p>
-        </div>
-        <button onclick="document.getElementById('new-project-form').classList.toggle('hidden')"
-                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Nuovo Progetto
-        </button>
+<!-- Header -->
+<div class="page-header">
+    <div class="page-header-info">
+        <h1>Projects</h1>
+        <p>Manage your projects and associated test cases</p>
     </div>
-
-    <!-- New Project Form (hidden by default) -->
-    <div id="new-project-form" class="hidden bg-white shadow rounded-lg p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Crea Nuovo Progetto</h3>
-        <form id="create-project-form" class="space-y-4">
-            <div>
-                <label for="project-name" class="block text-sm font-medium text-gray-700">Nome *</label>
-                <input type="text" id="project-name" name="name" required maxlength="255"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
-            </div>
-            <div>
-                <label for="project-description" class="block text-sm font-medium text-gray-700">Descrizione</label>
-                <textarea id="project-description" name="description" rows="3" maxlength="1000"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"></textarea>
-            </div>
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="document.getElementById('new-project-form').classList.add('hidden')"
-                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    Annulla
-                </button>
-                <button type="submit"
-                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                    Crea Progetto
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Projects Grid -->
-    {% if projects %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for project in projects %}
-        <a href="/projects/{{ project.id }}" class="block bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow">
-            <div class="flex items-start justify-between">
-                <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-indigo-600">{{ project.name }}</h3>
-                    {% if project.description %}
-                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ project.description }}</p>
-                    {% endif %}
-                </div>
-                <div class="ml-4 flex-shrink-0">
-                    <div class="flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100">
-                        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center space-x-4 text-sm text-gray-500">
-                <span class="inline-flex items-center">
-                    <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                    </svg>
-                    {{ project.epic_count }} Epic
-                </span>
-                <span class="inline-flex items-center">
-                    <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    {{ project.active_test_definition_count }} Test Case
-                </span>
-            </div>
-            <div class="mt-2 text-xs text-gray-400">
-                Creato: {{ project.created_at.strftime('%Y-%m-%d %H:%M') }}
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="bg-white shadow rounded-lg p-12 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+    <button onclick="document.getElementById('new-project-form').classList.toggle('hidden')"
+            class="btn btn-primary">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Nessun progetto</h3>
-        <p class="mt-1 text-sm text-gray-500">Crea il tuo primo progetto per iniziare a definire i test case.</p>
-    </div>
-    {% endif %}
+        New Project
+    </button>
 </div>
+
+<!-- New Project Form (hidden by default) -->
+<div id="new-project-form" class="hidden card card-padded">
+    <h3>Create New Project</h3>
+    <form id="create-project-form" class="form-space mt-4">
+        <div class="form-group">
+            <label for="project-name" class="form-label">Name *</label>
+            <input type="text" id="project-name" name="name" required maxlength="255" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="project-description" class="form-label">Description</label>
+            <textarea id="project-description" name="description" rows="3" maxlength="1000" class="form-textarea"></textarea>
+        </div>
+        <div class="form-actions">
+            <button type="button" onclick="document.getElementById('new-project-form').classList.add('hidden')"
+                    class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Project</button>
+        </div>
+    </form>
+</div>
+
+<!-- Projects Grid -->
+{% if projects %}
+<div class="grid grid-cols-1 grid-cols-md-2 grid-cols-lg-3">
+    {% for project in projects %}
+    <a href="/projects/{{ project.id }}" class="card-link">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <h3 class="item-title">{{ project.name }}</h3>
+                {% if project.description %}
+                <p class="text-secondary text-sm mt-1 line-clamp-2">{{ project.description }}</p>
+                {% endif %}
+            </div>
+            <div class="ml-4 icon-circle">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="item-meta mt-4">
+            <span class="item-meta-inline">
+                <svg class="mr-1" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                {{ project.epic_count }} Epic
+            </span>
+            <span class="item-meta-inline">
+                <svg class="mr-1" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                {{ project.active_test_definition_count }} Test Case
+            </span>
+        </div>
+        <div class="mt-2 text-xs text-muted">
+            Created: {{ project.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card card-empty">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+    </svg>
+    <h3>No projects</h3>
+    <p>Create your first project to start defining test cases.</p>
+</div>
+{% endif %}
 
 <script>
 document.getElementById('create-project-form').addEventListener('submit', async function(e) {
@@ -113,10 +102,10 @@ document.getElementById('create-project-form').addEventListener('submit', async 
             window.location.reload();
         } else {
             const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
+            alert('Error: ' + (data.detail || 'Unknown error'));
         }
     } catch (err) {
-        alert('Errore di rete: ' + err.message);
+        alert('Network error: ' + err.message);
     }
 });
 </script>

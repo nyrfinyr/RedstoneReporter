@@ -31,7 +31,8 @@ async def dashboard(request: Request):
         "dashboard.html",
         {
             "request": request,
-            "runs": runs
+            "runs": runs,
+            "active_page": "dashboard"
         }
     )
 
@@ -73,6 +74,7 @@ async def run_detail(
             "run": run,
             "cases": cases,
             "stats": stats,
-            "filter": filter
+            "filter": filter,
+            "active_page": "dashboard"
         }
     )

@@ -1,102 +1,89 @@
 {% extends "base.html" %}
 
-{% block title %}{% if definition %}Modifica{% else %}Nuovo{% endif %} Test Case - RedstoneReporter{% endblock %}
+{% block title %}{% if definition %}Edit{% else %}New{% endif %} Test Case - RedstoneReporter{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Breadcrumb -->
-    <nav class="flex" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2 text-sm text-gray-500">
-            <li><a href="/projects" class="hover:text-indigo-600">Progetti</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/projects/{{ project.id }}" class="hover:text-indigo-600">{{ project.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="hover:text-indigo-600">{{ epic.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/features/{{ feature.id }}" class="hover:text-indigo-600">{{ feature.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li class="font-medium text-gray-900">{% if definition %}Modifica{% else %}Nuovo{% endif %} Test Case</li>
-        </ol>
-    </nav>
+<!-- Breadcrumb -->
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/projects">Projects</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/projects/{{ project.id }}">{{ project.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/projects/{{ project.id }}/epics/{{ epic.id }}">{{ epic.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/features/{{ feature.id }}">{{ feature.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">{% if definition %}Edit{% else %}New{% endif %} Test Case</span>
+</nav>
 
-    <!-- Form -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">
-            {% if definition %}Modifica Test Case{% else %}Nuovo Test Case{% endif %}
-        </h1>
+<!-- Form -->
+<div class="card card-padded">
+    <h1 class="mb-6">
+        {% if definition %}Edit Test Case{% else %}New Test Case{% endif %}
+    </h1>
 
-        <form id="definition-form" class="space-y-6">
-            <!-- Title -->
-            <div>
-                <label for="def-title" class="block text-sm font-medium text-gray-700">Titolo *</label>
-                <input type="text" id="def-title" name="title" required maxlength="255"
-                       value="{{ definition.title if definition else '' }}"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
-            </div>
+    <form id="definition-form" class="form-space">
+        <!-- Title -->
+        <div class="form-group">
+            <label for="def-title" class="form-label">Title *</label>
+            <input type="text" id="def-title" name="title" required maxlength="255"
+                   value="{{ definition.title if definition else '' }}" class="form-input">
+        </div>
 
-            <!-- Description -->
-            <div>
-                <label for="def-description" class="block text-sm font-medium text-gray-700">Descrizione</label>
-                <textarea id="def-description" name="description" rows="3" maxlength="2000"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">{{ definition.description if definition and definition.description else '' }}</textarea>
-            </div>
+        <!-- Description -->
+        <div class="form-group">
+            <label for="def-description" class="form-label">Description</label>
+            <textarea id="def-description" name="description" rows="3" maxlength="2000"
+                      class="form-textarea">{{ definition.description if definition and definition.description else '' }}</textarea>
+        </div>
 
-            <!-- Preconditions -->
-            <div>
-                <label for="def-preconditions" class="block text-sm font-medium text-gray-700">Precondizioni</label>
-                <textarea id="def-preconditions" name="preconditions" rows="2" maxlength="2000"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">{{ definition.preconditions if definition and definition.preconditions else '' }}</textarea>
-            </div>
+        <!-- Preconditions -->
+        <div class="form-group">
+            <label for="def-preconditions" class="form-label">Preconditions</label>
+            <textarea id="def-preconditions" name="preconditions" rows="2" maxlength="2000"
+                      class="form-textarea">{{ definition.preconditions if definition and definition.preconditions else '' }}</textarea>
+        </div>
 
-            <!-- Steps (FR-UI4: dynamic add/remove) -->
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <label class="block text-sm font-medium text-gray-700">Step</label>
-                    <button type="button" onclick="addStep()"
-                            class="inline-flex items-center px-3 py-1 border border-indigo-300 rounded-md text-sm font-medium text-indigo-700 bg-white hover:bg-indigo-50">
-                        <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Aggiungi Step
-                    </button>
-                </div>
-                <div id="steps-container" class="space-y-2">
-                    <!-- Steps will be added here dynamically -->
-                </div>
-            </div>
-
-            <!-- Expected Result -->
-            <div>
-                <label for="def-expected-result" class="block text-sm font-medium text-gray-700">Risultato Atteso</label>
-                <textarea id="def-expected-result" name="expected_result" rows="2" maxlength="2000"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">{{ definition.expected_result if definition and definition.expected_result else '' }}</textarea>
-            </div>
-
-            <!-- Priority -->
-            <div>
-                <label for="def-priority" class="block text-sm font-medium text-gray-700">Priorita'</label>
-                <select id="def-priority" name="priority"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
-                    <option value="critical" {% if definition and definition.priority == 'critical' %}selected{% endif %}>Critical</option>
-                    <option value="high" {% if definition and definition.priority == 'high' %}selected{% endif %}>High</option>
-                    <option value="medium" {% if definition and definition.priority == 'medium' %}selected{% endif %} {% if not definition %}selected{% endif %}>Medium</option>
-                    <option value="low" {% if definition and definition.priority == 'low' %}selected{% endif %}>Low</option>
-                </select>
-            </div>
-
-            <!-- Submit -->
-            <div class="flex justify-end space-x-3">
-                <a href="/features/{{ feature.id }}"
-                   class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    Annulla
-                </a>
-                <button type="submit"
-                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                    {% if definition %}Salva Modifiche{% else %}Crea Test Case{% endif %}
+        <!-- Steps -->
+        <div class="form-group">
+            <div class="flex justify-between items-center mb-2">
+                <label class="form-label">Steps</label>
+                <button type="button" onclick="addStep()" class="btn btn-outline btn-sm">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Step
                 </button>
             </div>
-        </form>
-    </div>
+            <div id="steps-container" class="space-y-sm"></div>
+        </div>
+
+        <!-- Expected Result -->
+        <div class="form-group">
+            <label for="def-expected-result" class="form-label">Expected Result</label>
+            <textarea id="def-expected-result" name="expected_result" rows="2" maxlength="2000"
+                      class="form-textarea">{{ definition.expected_result if definition and definition.expected_result else '' }}</textarea>
+        </div>
+
+        <!-- Priority -->
+        <div class="form-group">
+            <label for="def-priority" class="form-label">Priority</label>
+            <select id="def-priority" name="priority" class="form-select">
+                <option value="critical" {% if definition and definition.priority == 'critical' %}selected{% endif %}>Critical</option>
+                <option value="high" {% if definition and definition.priority == 'high' %}selected{% endif %}>High</option>
+                <option value="medium" {% if definition and definition.priority == 'medium' %}selected{% endif %} {% if not definition %}selected{% endif %}>Medium</option>
+                <option value="low" {% if definition and definition.priority == 'low' %}selected{% endif %}>Low</option>
+            </select>
+        </div>
+
+        <!-- Submit -->
+        <div class="form-actions">
+            <a href="/features/{{ feature.id }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                {% if definition %}Save Changes{% else %}Create Test Case{% endif %}
+            </button>
+        </div>
+    </form>
 </div>
 
 <script>
@@ -105,11 +92,11 @@ let stepCounter = 0;
 function addStep(description) {
     const container = document.getElementById('steps-container');
     const stepDiv = document.createElement('div');
-    stepDiv.className = 'flex items-center space-x-2';
+    stepDiv.className = 'step-row';
     stepDiv.id = 'step-' + stepCounter;
 
     const orderSpan = document.createElement('span');
-    orderSpan.className = 'flex-shrink-0 text-sm font-medium text-gray-500 w-8 text-center';
+    orderSpan.className = 'step-row-order';
     orderSpan.textContent = (container.children.length + 1) + '.';
 
     const input = document.createElement('input');
@@ -118,13 +105,13 @@ function addStep(description) {
     input.maxLength = 500;
     input.required = true;
     input.value = description || '';
-    input.placeholder = 'Descrizione dello step...';
-    input.className = 'flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2';
+    input.placeholder = 'Step description...';
+    input.className = 'form-input flex-1';
 
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.className = 'flex-shrink-0 px-2 py-2 border border-red-300 rounded-md text-sm text-red-600 hover:bg-red-50';
-    removeBtn.innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+    removeBtn.className = 'btn-icon danger';
+    removeBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
     removeBtn.onclick = function() {
         stepDiv.remove();
         renumberSteps();
@@ -196,10 +183,10 @@ document.getElementById('definition-form').addEventListener('submit', async func
             window.location.href = '/test-cases/' + data.id;
         } else {
             const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
+            alert('Error: ' + (data.detail || 'Unknown error'));
         }
     } catch (err) {
-        alert('Errore di rete: ' + err.message);
+        alert('Network error: ' + err.message);
     }
 });
 </script>

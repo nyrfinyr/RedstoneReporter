@@ -3,47 +3,43 @@
 {% block title %}Dashboard - RedstoneReporter{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Test Runs Dashboard</h1>
-            <p class="mt-1 text-sm text-gray-500">View and monitor your AI agent test executions</p>
-        </div>
-        <div class="flex items-center space-x-2">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                Auto-refresh: 5s
-            </span>
-        </div>
+<!-- Header -->
+<div class="page-header">
+    <div class="page-header-info">
+        <h1>Test Runs Dashboard</h1>
+        <p>View and monitor your AI agent test executions</p>
+    </div>
+    <div>
+        <span class="auto-refresh-badge">Auto-refresh: 5s</span>
+    </div>
+</div>
+
+<!-- Test Runs List -->
+<div class="card">
+    <div class="card-header">
+        <h2>Recent Test Runs</h2>
     </div>
 
-    <!-- Test Runs List -->
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Recent Test Runs</h2>
-        </div>
+    <!-- Runs container with auto-refresh -->
+    <div id="runs-list"
+         hx-get="/api/htmx/runs"
+         hx-trigger="every 5s"
+         hx-swap="innerHTML">
 
-        <!-- Runs container with auto-refresh -->
-        <div id="runs-list"
-             hx-get="/api/htmx/runs"
-             hx-trigger="every 5s"
-             hx-swap="innerHTML">
-
-            {% include "partials/run_list.html" %}
-        </div>
+        {% include "partials/run_list.html" %}
     </div>
 </div>
 
 <script>
 function closeRun(runId) {
-    if (!confirm('Sei sicuro di voler chiudere questa Run? L\'azione è irreversibile.')) return;
+    if (!confirm('Are you sure you want to close this Run? This action is irreversible.')) return;
     fetch('/api/runs/' + runId + '/finish', { method: 'POST' })
         .then(function(response) {
-            if (!response.ok) throw new Error('Errore durante la chiusura della Run');
+            if (!response.ok) throw new Error('Error while closing the Run');
             htmx.ajax('GET', '/api/htmx/runs', '#runs-list');
         })
         .catch(function(err) {
-            alert('Errore: ' + err.message);
+            alert('Error: ' + err.message);
         });
 }
 </script>

@@ -1,34 +1,34 @@
 <!-- Test Steps and Screenshot Details -->
-<div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+<div class="details-section">
     <!-- Test Steps -->
     {% if case.steps %}
     <div class="mb-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Test Steps:</h4>
-        <div class="space-y-2">
+        <h4 class="text-sm font-semibold mb-3">Test Steps:</h4>
+        <div class="space-y-sm">
             {% for step in case.steps|sort(attribute='order_index') %}
-            <div class="flex items-start space-x-3 p-3 bg-white rounded border {% if step.status == 'failed' %}border-red-200{% elif step.status == 'passed' %}border-green-200{% else %}border-gray-200{% endif %}">
+            <div class="step-item {% if step.status == 'failed' %}failed{% elif step.status == 'passed' %}passed{% endif %}">
                 <!-- Step Number -->
-                <div class="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full {% if step.status == 'failed' %}bg-red-100 text-red-600{% elif step.status == 'passed' %}bg-green-100 text-green-600{% else %}bg-gray-100 text-gray-600{% endif %} text-xs font-bold">
+                <div class="step-number-status {% if step.status == 'failed' %}failed{% elif step.status == 'passed' %}passed{% else %}neutral{% endif %}">
                     {{ step.order_index + 1 }}
                 </div>
 
                 <!-- Step Description -->
                 <div class="flex-1">
-                    <p class="text-sm text-gray-900">{{ step.description }}</p>
+                    <p class="text-sm">{{ step.description }}</p>
                 </div>
 
                 <!-- Step Status Icon -->
                 <div class="flex-shrink-0">
                     {% if step.status == 'passed' %}
-                    <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="step-status-icon passed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     {% elif step.status == 'failed' %}
-                    <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="step-status-icon failed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                     {% else %}
-                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="step-status-icon neutral" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                     </svg>
                     {% endif %}
@@ -42,9 +42,9 @@
     <!-- Error Stack Trace -->
     {% if case.error_stack %}
     <div class="mb-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Stack Trace:</h4>
-        <div class="bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto">
-            <pre class="text-xs font-mono">{{ case.error_stack }}</pre>
+        <h4 class="text-sm font-semibold mb-3">Stack Trace:</h4>
+        <div class="code-block">
+            <pre>{{ case.error_stack }}</pre>
         </div>
     </div>
     {% endif %}
@@ -52,22 +52,19 @@
     <!-- Screenshot -->
     {% if case.screenshot_path %}
     <div>
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Screenshot:</h4>
-        <div class="bg-white p-4 rounded border border-gray-200">
+        <h4 class="text-sm font-semibold mb-3">Screenshot:</h4>
+        <div class="screenshot-container">
             <img
                 src="/screenshots/{{ case.screenshot_path }}"
                 alt="Test screenshot for {{ case.name }}"
-                class="max-w-full h-auto rounded shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
                 onclick="window.open(this.src, '_blank')"
             />
-            <p class="mt-2 text-xs text-gray-500 text-center">
-                Click image to open in new tab
-            </p>
+            <p>Click image to open in new tab</p>
         </div>
     </div>
     {% endif %}
 
     {% if not case.steps and not case.error_stack and not case.screenshot_path %}
-    <p class="text-sm text-gray-500 italic">No additional details available for this test case.</p>
+    <p class="text-sm text-secondary text-italic">No additional details available for this test case.</p>
     {% endif %}
 </div>

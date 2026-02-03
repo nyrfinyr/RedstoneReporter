@@ -1,70 +1,66 @@
 <!-- Partial template for HTMX auto-refresh of runs list -->
 {% if runs %}
-<div class="divide-y divide-gray-200">
+<div class="divider-list">
     {% for run in runs %}
-    <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+    <div class="list-row">
         <div class="flex items-center justify-between">
             <div class="flex-1">
-                <div class="flex items-center space-x-3">
-                    <a href="/runs/{{ run.id }}" class="text-lg font-medium text-indigo-600 hover:text-indigo-800">
+                <div class="flex items-center gap-3">
+                    <a href="/runs/{{ run.id }}" class="item-title">
                         {{ run.name }}
                     </a>
                     <!-- Status Badge -->
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-{{ run.status }}">
+                    <span class="badge status-{{ run.status }}">
                         {% if run.status == 'running' %}
-                        <span class="pulse">● </span>
+                        <span class="pulse">&#9679; </span>
                         {% endif %}
                         {{ run.status|upper }}
                     </span>
-                    <!-- Project Badge (FR-J2) -->
+                    <!-- Project Badge -->
                     {% if run.project %}
-                    <a href="/projects/{{ run.project.id }}" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
+                    <a href="/projects/{{ run.project.id }}" class="badge-primary">
                         {{ run.project.name }}
                     </a>
                     {% endif %}
                 </div>
 
                 <!-- Metadata -->
-                <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                    <span>
-                        🕐 Started: {{ run.start_time.strftime('%Y-%m-%d %H:%M:%S') }}
-                    </span>
+                <div class="item-meta mt-2">
+                    <span>Started: {{ run.start_time.strftime('%Y-%m-%d %H:%M:%S') }}</span>
                     {% if run.end_time %}
-                    <span>
-                        ⏱️ Duration: {{ "%.2f"|format(run.duration / 1000) }}s
-                    </span>
+                    <span>Duration: {{ "%.2f"|format(run.duration / 1000) }}s</span>
                     {% endif %}
                 </div>
 
                 <!-- Test Statistics -->
-                <div class="mt-3 flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-medium text-gray-700">Total:</span>
-                        <span class="inline-flex items-center px-2 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800">
+                <div class="flex items-center gap-4 mt-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">Total:</span>
+                        <span class="badge-info-chip">
                             {{ run.test_count }}
                         </span>
                     </div>
                     {% if run.passed_count > 0 %}
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-medium text-gray-700">Passed:</span>
-                        <span class="inline-flex items-center px-2 py-1 rounded text-sm font-medium bg-green-100 text-green-800">
-                            ✓ {{ run.passed_count }}
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">Passed:</span>
+                        <span class="badge-info-chip success">
+                            &#10003; {{ run.passed_count }}
                         </span>
                     </div>
                     {% endif %}
                     {% if run.failed_count > 0 %}
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-medium text-gray-700">Failed:</span>
-                        <span class="inline-flex items-center px-2 py-1 rounded text-sm font-medium bg-red-100 text-red-800">
-                            ✗ {{ run.failed_count }}
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">Failed:</span>
+                        <span class="badge-info-chip error">
+                            &#10007; {{ run.failed_count }}
                         </span>
                     </div>
                     {% endif %}
                     {% if run.skipped_count > 0 %}
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-medium text-gray-700">Skipped:</span>
-                        <span class="inline-flex items-center px-2 py-1 rounded text-sm font-medium bg-gray-100 text-gray-600">
-                            ○ {{ run.skipped_count }}
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">Skipped:</span>
+                        <span class="badge-info-chip muted">
+                            &#9675; {{ run.skipped_count }}
                         </span>
                     </div>
                     {% endif %}
@@ -72,20 +68,20 @@
             </div>
 
             <!-- Close Button + Visual Indicator -->
-            <div class="ml-6 flex items-center space-x-3">
-                <!-- Close Run Button (FR-L1, FR-L2, FR-L3) -->
+            <div class="ml-4 flex items-center gap-3">
+                <!-- Close Run Button -->
                 {% if run.status == 'running' %}
                 <button onclick="closeRun({{ run.id }})"
-                        class="inline-flex items-center px-3 py-1.5 border border-amber-300 rounded-md text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors"
-                        title="Chiudi questa Run manualmente">
-                    <svg class="h-3.5 w-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                        class="btn btn-warning btn-sm"
+                        title="Close this Run manually">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                         <rect x="6" y="6" width="12" height="12" rx="1"></rect>
                     </svg>
-                    Chiudi
+                    Close
                 </button>
                 {% endif %}
 
-                <!-- Visual Indicator: Percentage Badge (FR-M1, FR-M2, FR-M3, FR-M4) -->
+                <!-- Visual Indicator: Percentage Badge -->
                 {% if run.test_count > 0 %}
                     {% set pct = (run.passed_count * 100 / run.test_count)|round|int %}
                     {% if pct <= 50 %}
@@ -93,16 +89,16 @@
                     {% else %}
                         {% set hue = (48 + (pct - 50) * 94 / 50)|round|int %}
                     {% endif %}
-                    <div class="flex items-center justify-center h-16 w-16 rounded-full"
+                    <div class="pct-circle"
                          style="background-color: hsl({{ hue }}, 80%, 95%);">
-                        <span class="text-sm font-bold" style="color: hsl({{ hue }}, 80%, 38%);">
+                        <span class="pct-circle-value" style="color: hsl({{ hue }}, 80%, 38%);">
                             {{ pct }}%
                         </span>
                     </div>
                 {% elif run.status == 'running' %}
                     <!-- Spinner for running runs with no tests yet -->
-                    <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
-                        <svg class="h-8 w-8 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <div class="spinner-circle">
+                        <svg class="animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -114,11 +110,11 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="px-6 py-12 text-center">
-    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="card-empty">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
     </svg>
-    <h3 class="mt-2 text-sm font-medium text-gray-900">No test runs</h3>
-    <p class="mt-1 text-sm text-gray-500">Start a new test run using the API to see results here.</p>
+    <h3>No test runs</h3>
+    <p>Start a new test run using the API to see results here.</p>
 </div>
 {% endif %}

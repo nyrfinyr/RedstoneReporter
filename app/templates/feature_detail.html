@@ -3,147 +3,122 @@
 {% block title %}{{ feature.name }} - {{ epic.name }} - RedstoneReporter{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Breadcrumb -->
-    <nav class="flex" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2 text-sm text-gray-500">
-            <li><a href="/projects" class="hover:text-indigo-600">Progetti</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/projects/{{ project.id }}" class="hover:text-indigo-600">{{ project.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="hover:text-indigo-600">{{ epic.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li class="font-medium text-gray-900">{{ feature.name }}</li>
-        </ol>
-    </nav>
+<!-- Breadcrumb -->
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/projects">Projects</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/projects/{{ project.id }}">{{ project.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/projects/{{ project.id }}/epics/{{ epic.id }}">{{ epic.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">{{ feature.name }}</span>
+</nav>
 
-    <!-- Feature Header -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <div class="flex items-start justify-between">
-            <div class="flex-1">
-                <h1 class="text-2xl font-bold text-gray-900">{{ feature.name }}</h1>
-                {% if feature.description %}
-                <p class="mt-2 text-gray-600">{{ feature.description }}</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-blue-50 rounded-lg p-4">
-                <p class="text-sm font-medium text-blue-700">Test Definiti</p>
-                <p class="mt-1 text-2xl font-bold text-blue-600">{{ feature.test_definition_count }}</p>
-            </div>
-            <div class="bg-green-50 rounded-lg p-4">
-                <p class="text-sm font-medium text-green-700">Test Attivi</p>
-                <p class="mt-1 text-2xl font-bold text-green-600">{{ feature.active_test_definition_count }}</p>
-            </div>
+<!-- Feature Header -->
+<div class="card card-padded">
+    <div class="flex items-start justify-between">
+        <div class="flex-1">
+            <h1>{{ feature.name }}</h1>
+            {% if feature.description %}
+            <p class="mt-2 text-secondary">{{ feature.description }}</p>
+            {% endif %}
         </div>
     </div>
 
-    <!-- New Test Case Button -->
-    <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-gray-900">Test Case Definitions</h2>
-        <a href="/features/{{ feature.id }}/test-cases/new"
-           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Nuovo Test Case
-        </a>
-    </div>
-
-    <!-- Definitions List -->
-    {% if definitions %}
-    <div class="space-y-4">
-        {% for def in definitions %}
-        <div class="bg-white shadow rounded-lg p-6 {% if not def.is_active %}opacity-60{% endif %}">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
-                    <div class="flex items-center space-x-3">
-                        <a href="/test-cases/{{ def.id }}" class="text-lg font-medium text-indigo-600 hover:text-indigo-800">
-                            {{ def.title }}
-                        </a>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium priority-{{ def.priority }}">
-                            {{ def.priority|upper }}
-                        </span>
-                        {% if not def.is_active %}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
-                            INATTIVO
-                        </span>
-                        {% endif %}
-                    </div>
-                    {% if def.description %}
-                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ def.description }}</p>
-                    {% endif %}
-                    <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                        <span>{{ def.steps|length }} step</span>
-                        <span>{{ def.execution_count }} esecuzioni</span>
-                        <span>Creato: {{ def.created_at.strftime('%Y-%m-%d') }}</span>
-                    </div>
-                </div>
-                <div class="ml-4 flex items-center space-x-1">
-                    <a href="/test-cases/{{ def.id }}/edit"
-                       title="Modifica"
-                       class="p-1.5 border border-gray-300 rounded-md text-gray-500 bg-white hover:bg-gray-50 hover:text-indigo-600">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                        </svg>
-                    </a>
-                    {% if def.is_active %}
-                    <button onclick="deactivateDefinition('{{ def.id }}')"
-                            title="Disattiva"
-                            class="p-1.5 border border-yellow-300 rounded-md text-yellow-600 bg-white hover:bg-yellow-50 hover:text-yellow-700">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                        </svg>
-                    </button>
-                    {% else %}
-                    <button onclick="activateDefinition('{{ def.id }}')"
-                            title="Riattiva"
-                            class="p-1.5 border border-green-300 rounded-md text-green-600 bg-white hover:bg-green-50 hover:text-green-700">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </button>
-                    {% endif %}
-                    <button onclick="deleteDefinition('{{ def.id }}')"
-                            title="Elimina"
-                            class="p-1.5 border border-red-300 rounded-md text-red-500 bg-white hover:bg-red-50 hover:text-red-700">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 grid-cols-md-2 mt-6">
+        <div class="stat-card info">
+            <p class="stat-card-label">Defined Tests</p>
+            <p class="stat-card-value">{{ feature.test_definition_count }}</p>
         </div>
-        {% endfor %}
+        <div class="stat-card success">
+            <p class="stat-card-label">Active Tests</p>
+            <p class="stat-card-value">{{ feature.active_test_definition_count }}</p>
+        </div>
     </div>
-    {% else %}
-    <div class="bg-white shadow rounded-lg p-12 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Nessun test case definito</h3>
-        <p class="mt-1 text-sm text-gray-500">Crea il primo test case per questa feature.</p>
-    </div>
-    {% endif %}
 </div>
+
+<!-- New Test Case Button -->
+<div class="section-header">
+    <h2>Test Case Definitions</h2>
+    <a href="/features/{{ feature.id }}/test-cases/new" class="btn btn-primary">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        New Test Case
+    </a>
+</div>
+
+<!-- Definitions List -->
+{% if definitions %}
+<div class="space-y">
+    {% for def in definitions %}
+    <div class="card card-padded {% if not def.is_active %}opacity-60{% endif %}">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <div class="flex items-center gap-3">
+                    <a href="/test-cases/{{ def.id }}" class="item-title">{{ def.title }}</a>
+                    <span class="badge priority-{{ def.priority }}">{{ def.priority|upper }}</span>
+                    {% if not def.is_active %}
+                    <span class="badge badge-inactive">INACTIVE</span>
+                    {% endif %}
+                </div>
+                {% if def.description %}
+                <p class="mt-1 text-sm text-secondary line-clamp-2">{{ def.description }}</p>
+                {% endif %}
+                <div class="item-meta mt-2">
+                    <span>{{ def.steps|length }} steps</span>
+                    <span>{{ def.execution_count }} executions</span>
+                    <span>Created: {{ def.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+            </div>
+            <div class="ml-4 flex items-center gap-1">
+                <a href="/test-cases/{{ def.id }}/edit" title="Edit" class="btn-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                </a>
+                {% if def.is_active %}
+                <button onclick="deactivateDefinition('{{ def.id }}')" title="Deactivate" class="btn-icon warning">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                </button>
+                {% else %}
+                <button onclick="activateDefinition('{{ def.id }}')" title="Reactivate" class="btn-icon success">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </button>
+                {% endif %}
+                <button onclick="deleteDefinition('{{ def.id }}')" title="Delete" class="btn-icon danger">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card card-empty">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+    </svg>
+    <h3>No test cases defined</h3>
+    <p>Create the first test case for this feature.</p>
+</div>
+{% endif %}
 
 <script>
 async function deactivateDefinition(defId) {
-    if (!confirm('Disattivare questo test case?')) return;
+    if (!confirm('Deactivate this test case?')) return;
     try {
         const response = await fetch('/api/test-cases/' + defId, {method: 'DELETE'});
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.reload(); }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 
 async function activateDefinition(defId) {
@@ -153,30 +128,18 @@ async function activateDefinition(defId) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({is_active: true})
         });
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.reload(); }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 
 async function deleteDefinition(defId) {
-    if (!confirm('Eliminare definitivamente questo test case? Questa azione non può essere annullata.')) return;
+    if (!confirm('Permanently delete this test case? This action cannot be undone.')) return;
     try {
         const response = await fetch('/api/test-cases/' + defId + '/permanent', {method: 'DELETE'});
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.reload(); }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 </script>
 {% endblock %}

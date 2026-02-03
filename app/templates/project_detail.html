@@ -3,138 +3,114 @@
 {% block title %}{{ project.name }} - RedstoneReporter{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Breadcrumb -->
-    <nav class="flex" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2 text-sm text-gray-500">
-            <li><a href="/projects" class="hover:text-indigo-600">Progetti</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li class="font-medium text-gray-900">{{ project.name }}</li>
-        </ol>
-    </nav>
+<!-- Breadcrumb -->
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/projects">Projects</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">{{ project.name }}</span>
+</nav>
 
-    <!-- Project Header -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <div class="flex items-start justify-between">
-            <div class="flex-1">
-                <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
-                {% if project.description %}
-                <p class="mt-2 text-gray-600">{{ project.description }}</p>
-                {% endif %}
-            </div>
-            <button onclick="deleteProject('{{ project.id }}')"
-                    class="ml-4 px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50">
-                Elimina
-            </button>
+<!-- Project Header -->
+<div class="card card-padded">
+    <div class="flex items-start justify-between">
+        <div class="flex-1">
+            <h1>{{ project.name }}</h1>
+            {% if project.description %}
+            <p class="mt-2 text-secondary">{{ project.description }}</p>
+            {% endif %}
         </div>
+        <button onclick="deleteProject('{{ project.id }}')" class="btn btn-danger">Delete</button>
+    </div>
 
-        <!-- Stats -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-indigo-50 rounded-lg p-4">
-                <p class="text-sm font-medium text-indigo-700">Epic</p>
-                <p class="mt-1 text-2xl font-bold text-indigo-600">{{ project.epic_count }}</p>
-            </div>
-            <div class="bg-blue-50 rounded-lg p-4">
-                <p class="text-sm font-medium text-blue-700">Test Definiti</p>
-                <p class="mt-1 text-2xl font-bold text-blue-600">{{ project.test_definition_count }}</p>
-            </div>
-            <div class="bg-green-50 rounded-lg p-4">
-                <p class="text-sm font-medium text-green-700">Test Attivi</p>
-                <p class="mt-1 text-2xl font-bold text-green-600">{{ project.active_test_definition_count }}</p>
-            </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 grid-cols-md-3 mt-6">
+        <div class="stat-card">
+            <p class="stat-card-label">Epic</p>
+            <p class="stat-card-value">{{ project.epic_count }}</p>
+        </div>
+        <div class="stat-card info">
+            <p class="stat-card-label">Defined Tests</p>
+            <p class="stat-card-value">{{ project.test_definition_count }}</p>
+        </div>
+        <div class="stat-card success">
+            <p class="stat-card-label">Active Tests</p>
+            <p class="stat-card-value">{{ project.active_test_definition_count }}</p>
         </div>
     </div>
-
-    <!-- New Epic Section -->
-    <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-gray-900">Epic</h2>
-        <button onclick="document.getElementById('new-epic-form').classList.toggle('hidden')"
-                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Nuova Epic
-        </button>
-    </div>
-
-    <!-- New Epic Form (hidden) -->
-    <div id="new-epic-form" class="hidden bg-white shadow rounded-lg p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Crea Nuova Epic</h3>
-        <form id="create-epic-form" class="space-y-4">
-            <div>
-                <label for="epic-name" class="block text-sm font-medium text-gray-700">Nome *</label>
-                <input type="text" id="epic-name" name="name" required maxlength="255"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
-            </div>
-            <div>
-                <label for="epic-description" class="block text-sm font-medium text-gray-700">Descrizione</label>
-                <textarea id="epic-description" name="description" rows="3" maxlength="1000"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2"></textarea>
-            </div>
-            <div>
-                <label for="epic-external-ref" class="block text-sm font-medium text-gray-700">Riferimento Esterno</label>
-                <input type="text" id="epic-external-ref" name="external_ref" maxlength="255" placeholder="es. JIRA-123, #456"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border px-3 py-2">
-            </div>
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="document.getElementById('new-epic-form').classList.add('hidden')"
-                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    Annulla
-                </button>
-                <button type="submit"
-                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                    Crea Epic
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Epics List -->
-    {% if epics %}
-    <div class="space-y-4">
-        {% for epic in epics %}
-        <div class="bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
-                    <div class="flex items-center space-x-3">
-                        <a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="text-lg font-medium text-indigo-600 hover:text-indigo-800">
-                            {{ epic.name }}
-                        </a>
-                        {% if epic.external_ref %}
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {{ epic.external_ref }}
-                        </span>
-                        {% endif %}
-                    </div>
-                    {% if epic.description %}
-                    <p class="mt-1 text-sm text-gray-500">{{ epic.description }}</p>
-                    {% endif %}
-                    <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                        <span>{{ epic.test_definition_count }} test definiti</span>
-                        <span>{{ epic.active_test_definition_count }} attivi</span>
-                        <span>Creato: {{ epic.created_at.strftime('%Y-%m-%d') }}</span>
-                    </div>
-                </div>
-                <div class="ml-4 flex items-center space-x-2">
-                    <button onclick="deleteEpic('{{ epic.id }}')"
-                            class="px-3 py-1 border border-red-300 rounded-md text-xs font-medium text-red-700 bg-white hover:bg-red-50">
-                        Elimina
-                    </button>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="bg-white shadow rounded-lg p-12 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Nessuna epic</h3>
-        <p class="mt-1 text-sm text-gray-500">Crea la prima epic per organizzare i tuoi test case.</p>
-    </div>
-    {% endif %}
 </div>
+
+<!-- New Epic Section -->
+<div class="section-header">
+    <h2>Epic</h2>
+    <button onclick="document.getElementById('new-epic-form').classList.toggle('hidden')" class="btn btn-primary">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        New Epic
+    </button>
+</div>
+
+<!-- New Epic Form (hidden) -->
+<div id="new-epic-form" class="hidden card card-padded">
+    <h3>Create New Epic</h3>
+    <form id="create-epic-form" class="form-space mt-4">
+        <div class="form-group">
+            <label for="epic-name" class="form-label">Name *</label>
+            <input type="text" id="epic-name" name="name" required maxlength="255" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="epic-description" class="form-label">Description</label>
+            <textarea id="epic-description" name="description" rows="3" maxlength="1000" class="form-textarea"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="epic-external-ref" class="form-label">External Reference</label>
+            <input type="text" id="epic-external-ref" name="external_ref" maxlength="255" placeholder="e.g. JIRA-123, #456" class="form-input">
+        </div>
+        <div class="form-actions">
+            <button type="button" onclick="document.getElementById('new-epic-form').classList.add('hidden')" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Epic</button>
+        </div>
+    </form>
+</div>
+
+<!-- Epics List -->
+{% if epics %}
+<div class="space-y">
+    {% for epic in epics %}
+    <div class="card card-padded">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <div class="flex items-center gap-3">
+                    <a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="item-title">{{ epic.name }}</a>
+                    {% if epic.external_ref %}
+                    <span class="badge-subtle">{{ epic.external_ref }}</span>
+                    {% endif %}
+                </div>
+                {% if epic.description %}
+                <p class="mt-1 text-sm text-secondary">{{ epic.description }}</p>
+                {% endif %}
+                <div class="item-meta mt-2">
+                    <span>{{ epic.test_definition_count }} tests defined</span>
+                    <span>{{ epic.active_test_definition_count }} active</span>
+                    <span>Created: {{ epic.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+            </div>
+            <div class="ml-4">
+                <button onclick="deleteEpic('{{ epic.id }}')" class="btn btn-danger btn-sm">Delete</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card card-empty">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+    </svg>
+    <h3>No epics</h3>
+    <p>Create the first epic to organize your test cases.</p>
+</div>
+{% endif %}
 
 <script>
 document.getElementById('create-epic-form').addEventListener('submit', async function(e) {
@@ -142,56 +118,33 @@ document.getElementById('create-epic-form').addEventListener('submit', async fun
     const name = document.getElementById('epic-name').value;
     const description = document.getElementById('epic-description').value;
     const external_ref = document.getElementById('epic-external-ref').value;
-
     try {
         const response = await fetch('/api/projects/{{ project.id }}/epics', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                name,
-                description: description || null,
-                external_ref: external_ref || null
-            })
+            body: JSON.stringify({ name, description: description || null, external_ref: external_ref || null })
         });
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.reload(); }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 });
 
 async function deleteProject(projectId) {
-    if (!confirm('Sei sicuro di voler eliminare questo progetto?')) return;
+    if (!confirm('Are you sure you want to delete this project?')) return;
     try {
         const response = await fetch('/api/projects/' + projectId, {method: 'DELETE'});
-        if (response.ok) {
-            window.location.href = '/projects';
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.href = '/projects'; }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 
 async function deleteEpic(epicId) {
-    if (!confirm('Sei sicuro di voler eliminare questa epic?')) return;
+    if (!confirm('Are you sure you want to delete this epic?')) return;
     try {
         const response = await fetch('/api/epics/' + epicId, {method: 'DELETE'});
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.reload(); }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 </script>
 {% endblock %}

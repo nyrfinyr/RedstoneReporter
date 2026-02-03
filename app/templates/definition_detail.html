@@ -3,186 +3,154 @@
 {% block title %}{{ definition.title }} - RedstoneReporter{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Breadcrumb -->
-    <nav class="flex" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2 text-sm text-gray-500">
-            <li><a href="/projects" class="hover:text-indigo-600">Progetti</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/projects/{{ project.id }}" class="hover:text-indigo-600">{{ project.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/projects/{{ project.id }}/epics/{{ epic.id }}" class="hover:text-indigo-600">{{ epic.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li><a href="/features/{{ feature.id }}" class="hover:text-indigo-600">{{ feature.name }}</a></li>
-            <li><span class="mx-1">/</span></li>
-            <li class="font-medium text-gray-900">{{ definition.title }}</li>
-        </ol>
-    </nav>
+<!-- Breadcrumb -->
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/projects">Projects</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/projects/{{ project.id }}">{{ project.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/projects/{{ project.id }}/epics/{{ epic.id }}">{{ epic.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <a href="/features/{{ feature.id }}">{{ feature.name }}</a>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">{{ definition.title }}</span>
+</nav>
 
-    <!-- Definition Header -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <div class="flex items-start justify-between">
-            <div class="flex-1">
-                <div class="flex items-center space-x-3">
-                    <h1 class="text-2xl font-bold text-gray-900">{{ definition.title }}</h1>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium priority-{{ definition.priority }}">
-                        {{ definition.priority|upper }}
-                    </span>
-                    {% if not definition.is_active %}
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
-                        INATTIVO
-                    </span>
-                    {% else %}
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ATTIVO
-                    </span>
+<!-- Definition Header -->
+<div class="card card-padded">
+    <div class="flex items-start justify-between">
+        <div class="flex-1">
+            <div class="flex items-center gap-3">
+                <h1>{{ definition.title }}</h1>
+                <span class="badge priority-{{ definition.priority }}">{{ definition.priority|upper }}</span>
+                {% if not definition.is_active %}
+                <span class="badge badge-inactive">INACTIVE</span>
+                {% else %}
+                <span class="badge badge-active">ACTIVE</span>
+                {% endif %}
+            </div>
+            <div class="mt-2 text-sm text-secondary">
+                Created: {{ definition.created_at.strftime('%Y-%m-%d %H:%M') }}
+                | Updated: {{ definition.updated_at.strftime('%Y-%m-%d %H:%M') }}
+            </div>
+        </div>
+        <div class="ml-4 flex items-center gap-1">
+            <a href="/test-cases/{{ definition.id }}/edit" title="Edit" class="btn-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+            </a>
+            {% if definition.is_active %}
+            <button onclick="deactivateDefinition('{{ definition.id }}')" title="Deactivate" class="btn-icon warning">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                </svg>
+            </button>
+            {% else %}
+            <button onclick="activateDefinition('{{ definition.id }}')" title="Reactivate" class="btn-icon success">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </button>
+            {% endif %}
+            <button onclick="deleteDefinition('{{ definition.id }}')" title="Delete" class="btn-icon danger">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Description -->
+    {% if definition.description %}
+    <div class="mt-6">
+        <h3 class="text-sm font-medium text-secondary">Description</h3>
+        <p class="mt-1">{{ definition.description }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Preconditions -->
+    {% if definition.preconditions %}
+    <div class="mt-4">
+        <h3 class="text-sm font-medium text-secondary">Preconditions</h3>
+        <p class="mt-1 info-box warning-bg">{{ definition.preconditions }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Steps -->
+    {% if definition.steps %}
+    <div class="mt-6">
+        <h3 class="text-sm font-medium text-secondary mb-3">Steps ({{ definition.steps|length }})</h3>
+        <ol class="space-y-sm">
+            {% for step in definition.steps|sort(attribute='order') %}
+            <li class="flex items-start gap-3">
+                <span class="step-number">{{ step.order + 1 }}</span>
+                <span>{{ step.description }}</span>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    {% endif %}
+
+    <!-- Expected Result -->
+    {% if definition.expected_result %}
+    <div class="mt-4">
+        <h3 class="text-sm font-medium text-secondary">Expected Result</h3>
+        <p class="mt-1 info-box success-bg">{{ definition.expected_result }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Execution History -->
+<div class="card">
+    <div class="card-header">
+        <h2>Execution History ({{ executions|length }})</h2>
+    </div>
+
+    {% if executions %}
+    <div class="divider-list">
+        {% for exec in executions %}
+        <div class="list-row">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="badge status-{{ exec.status }}">{{ exec.status|upper }}</span>
+                    <span class="font-medium">{{ exec.name }}</span>
+                    {% if exec.run %}
+                    <a href="/runs/{{ exec.run_id }}" class="text-sm text-accent">Run #{{ exec.run_id }}</a>
                     {% endif %}
                 </div>
-                <div class="mt-2 text-sm text-gray-500">
-                    Creato: {{ definition.created_at.strftime('%Y-%m-%d %H:%M') }}
-                    | Aggiornato: {{ definition.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                <div class="text-sm text-secondary">
+                    {% if exec.duration %}
+                    {{ "%.2f"|format(exec.duration / 1000) }}s
+                    {% endif %}
+                    | {{ exec.created_at.strftime('%Y-%m-%d %H:%M') }}
                 </div>
             </div>
-            <div class="ml-4 flex items-center space-x-1">
-                <a href="/test-cases/{{ definition.id }}/edit"
-                   title="Modifica"
-                   class="p-2 border border-gray-300 rounded-md text-gray-500 bg-white hover:bg-gray-50 hover:text-indigo-600">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                    </svg>
-                </a>
-                {% if definition.is_active %}
-                <button onclick="deactivateDefinition('{{ definition.id }}')"
-                        title="Disattiva"
-                        class="p-2 border border-yellow-300 rounded-md text-yellow-600 bg-white hover:bg-yellow-50 hover:text-yellow-700">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                    </svg>
-                </button>
-                {% else %}
-                <button onclick="activateDefinition('{{ definition.id }}')"
-                        title="Riattiva"
-                        class="p-2 border border-green-300 rounded-md text-green-600 bg-white hover:bg-green-50 hover:text-green-700">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </button>
-                {% endif %}
-                <button onclick="deleteDefinition('{{ definition.id }}')"
-                        title="Elimina"
-                        class="p-2 border border-red-300 rounded-md text-red-500 bg-white hover:bg-red-50 hover:text-red-700">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                </button>
-            </div>
+            {% if exec.error_message %}
+            <div class="mt-2 error-box">{{ exec.error_message }}</div>
+            {% endif %}
         </div>
-
-        <!-- Description -->
-        {% if definition.description %}
-        <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-700">Descrizione</h3>
-            <p class="mt-1 text-gray-600">{{ definition.description }}</p>
-        </div>
-        {% endif %}
-
-        <!-- Preconditions -->
-        {% if definition.preconditions %}
-        <div class="mt-4">
-            <h3 class="text-sm font-medium text-gray-700">Precondizioni</h3>
-            <p class="mt-1 text-gray-600 bg-yellow-50 p-3 rounded-md">{{ definition.preconditions }}</p>
-        </div>
-        {% endif %}
-
-        <!-- Steps -->
-        {% if definition.steps %}
-        <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">Step ({{ definition.steps|length }})</h3>
-            <ol class="space-y-2">
-                {% for step in definition.steps|sort(attribute='order') %}
-                <li class="flex items-start">
-                    <span class="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-medium mr-3">
-                        {{ step.order + 1 }}
-                    </span>
-                    <span class="text-gray-700">{{ step.description }}</span>
-                </li>
-                {% endfor %}
-            </ol>
-        </div>
-        {% endif %}
-
-        <!-- Expected Result -->
-        {% if definition.expected_result %}
-        <div class="mt-4">
-            <h3 class="text-sm font-medium text-gray-700">Risultato Atteso</h3>
-            <p class="mt-1 text-gray-600 bg-green-50 p-3 rounded-md">{{ definition.expected_result }}</p>
-        </div>
-        {% endif %}
+        {% endfor %}
     </div>
-
-    <!-- Execution History (FR-G4, FR-G5) -->
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">Storico Esecuzioni ({{ executions|length }})</h2>
-        </div>
-
-        {% if executions %}
-        <div class="divide-y divide-gray-200">
-            {% for exec in executions %}
-            <div class="px-6 py-4 hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-{{ exec.status }}">
-                            {{ exec.status|upper }}
-                        </span>
-                        <span class="text-sm font-medium text-gray-900">{{ exec.name }}</span>
-                        {% if exec.run %}
-                        <a href="/runs/{{ exec.run_id }}" class="text-sm text-indigo-600 hover:text-indigo-800">
-                            Run #{{ exec.run_id }}
-                        </a>
-                        {% endif %}
-                    </div>
-                    <div class="text-sm text-gray-500">
-                        {% if exec.duration %}
-                        {{ "%.2f"|format(exec.duration / 1000) }}s
-                        {% endif %}
-                        | {{ exec.created_at.strftime('%Y-%m-%d %H:%M') }}
-                    </div>
-                </div>
-                {% if exec.error_message %}
-                <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                    {{ exec.error_message }}
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="px-6 py-12 text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">Nessuna esecuzione</h3>
-            <p class="mt-1 text-sm text-gray-500">Questo test case non e' stato ancora eseguito.</p>
-        </div>
-        {% endif %}
+    {% else %}
+    <div class="card-empty">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3>No executions</h3>
+        <p>This test case has not been executed yet.</p>
     </div>
+    {% endif %}
 </div>
 
 <script>
 async function deactivateDefinition(defId) {
-    if (!confirm('Disattivare questo test case?')) return;
+    if (!confirm('Deactivate this test case?')) return;
     try {
         const response = await fetch('/api/test-cases/' + defId, {method: 'DELETE'});
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.reload(); }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 
 async function activateDefinition(defId) {
@@ -192,30 +160,18 @@ async function activateDefinition(defId) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({is_active: true})
         });
-        if (response.ok) {
-            window.location.reload();
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.reload(); }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 
 async function deleteDefinition(defId) {
-    if (!confirm('Eliminare definitivamente questo test case? Questa azione non può essere annullata.')) return;
+    if (!confirm('Permanently delete this test case? This action cannot be undone.')) return;
     try {
         const response = await fetch('/api/test-cases/' + defId + '/permanent', {method: 'DELETE'});
-        if (response.ok) {
-            window.location.href = '/features/{{ feature.id }}';
-        } else {
-            const data = await response.json();
-            alert('Errore: ' + (data.detail || 'Errore sconosciuto'));
-        }
-    } catch (err) {
-        alert('Errore di rete: ' + err.message);
-    }
+        if (response.ok) { window.location.href = '/features/{{ feature.id }}'; }
+        else { const data = await response.json(); alert('Error: ' + (data.detail || 'Unknown error')); }
+    } catch (err) { alert('Network error: ' + err.message); }
 }
 </script>
 {% endblock %}
