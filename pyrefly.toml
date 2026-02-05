@@ -1,0 +1,14 @@
+[default]
+python-version = "3.11.0"
+
+project-includes = ["app/**/*.py", "tests/**/*.py", "scripts/**/*.py"]
+project-excludes = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/venv/**",
+    "**/.[!/.]*/**",
+]
+
+search-path = ["."]
+
+ignore-missing-imports = ["motor.*", "beanie.*", "mongomock_motor.*"]

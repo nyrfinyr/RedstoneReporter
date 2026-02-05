@@ -1,0 +1,1 @@
+Quando l'utente chiede di eseguire test, verificare funzionalità, testare l'applicazione, o qualsiasi attività legata al QA e alla verifica, usa sempre la skill /qa-automation-agent.

@@ -4,10 +4,17 @@ services:
     ports:
       - "3001:8080"
     environment:
-      MONGO_URI: mongodb://localhost:27111
+      MONGO_URI: mongodb://host.docker.internal:27111
       MONGO_DB: redstone_reporter
 
   playwright-mcp:
     image: playwright-mcp:latest
     ports:
       - "3003:8080"
+
+  reporter-mcp:
+    image: reporter-mcp:latest
+    ports:
+      - "3002:8080"
+    environment:
+      REPORTER_BASE_URL: http://host.docker.internal:8000
